@@ -28,7 +28,6 @@ async function main() {
     const tickers = await fetchJson(`${BINANCE}/ticker/24hr`);
     if (!tickers) return;
     
-    // Cập nhật BTC
     const btcKl = await fetchJson(`${BINANCE}/klines?symbol=BTCUSDT&interval=4h&limit=200`);
     if (btcKl) {
         const closes = btcKl.map(x => parseFloat(x[4]));
@@ -36,8 +35,7 @@ async function main() {
         state.btcRegime.routerMode = state.btcRegime.ret30 > 3 ? 'V40_BULL' : 'OFF';
     }
 
-    // Lấy top 30 coin
-    const topCoins = tickers.filter(t => t.symbol.endsWith('USDT') && parseFloat(t.quoteVolume) > 10000000).sort((a,b) => parseFloat(b.quoteVolume) - parseFloat(a.quoteVolume)).slice(0, 30);
+    const topCoins = tickers.filter(t => t.symbol.endsWith('USDT') && parseFloat(t.quoteVolume) > 10000000).sort((a,b) => parseFloat(b.quoteVolume) - parseFloat(a.quoteVolume)).slice(0, 50);
     state.universe = topCoins.map(c => c.symbol);
 
     for (const coin of topCoins) {
@@ -48,7 +46,6 @@ async function main() {
         const kc = kl.map(x => ({ t: +x[0], o: +x[1], h: +x[2], l: +x[3], c: +x[4], v: +x[5] })).slice(0, -1);
         const closes = kc.map(x => x.c); const atr = calcATR(kc, 14); const ema50 = calcEMA(closes, 50); const ema200 = calcEMA(closes, 200);
 
-        // Quét 180 nến gần nhất (30 ngày)
         for (let j = Math.max(210, kc.length - 180); j < kc.length; j++) {
             const sigL = findPBLower(kc, j, atr, ema50, ema200);
             if (sigL) {
