@@ -1,7 +1,9 @@
 const fs = require('fs');
 const TG_TOKEN = process.env.TG_TOKEN;
 const TG_CHAT = process.env.TG_CHAT;
-const BINANCE = 'https://fapi.binance.com/fapi/v1';
+
+// Sử dụng Bybit để tránh bị Binance chặn IP (lỗi 451) từ GitHub Actions
+const BYBIT = 'https://api.bybit.com/v5/market';
 
 async function fetchJson(url) {
     try { 
@@ -30,40 +32,41 @@ function findPBLower(k, i, atr, ema50, ema200) { const a = atr[i], c = k[i].c; i
 function evaluateEngine(klines, i, s) { const isL = s.type === 'LONG'; const limit = s.avgEntry, slOrig = s.slTarget, tp = s.tpTarget; const risk = Math.abs(limit - slOrig); const last = klines.length - 1; let fillJ = -1, fillTime = null; if (s.entryType === 'MARKET') { fillJ = i; fillTime = klines[i].t; } else { for (let j = i + 1; j <= Math.min(i + 12, last); j++) { if (isL ? klines[j].l <= limit : klines[j].h >= limit) { fillJ = j; fillTime = klines[j].t; break; } } if (fillJ === -1) return { state: 'EXPIRED', netR: 0, fillTime: null }; } let finalState = 'RUNNING', closeIdx = -1, grossR = 0; for (let j = fillJ + 1; j <= last; j++) { if (isL ? klines[j].l <= slOrig : klines[j].h >= slOrig) { grossR = -1; finalState = 'SL'; closeIdx = j; break; } if (isL ? klines[j].h >= tp : klines[j].l <= tp) { grossR = s.rr; finalState = 'TP'; closeIdx = j; break; } if (j - fillJ >= 60) { finalState = 'TIME'; closeIdx = j; break; } } return { state: finalState, netR: grossR, grossR, fillTime, closeTime: closeIdx >= 0 ? klines[closeIdx].t : null }; }
 
 async function main() {
-    console.log('Bắt đầu chạy bot...');
+    console.log('Bắt đầu chạy bot (dùng Bybit API)...');
     let state = { positions: {}, btcRegime: null, universe: [] };
     
-    // Luôn tạo file data.json mặc định trước
+    // Tạo file mặc định trước
     fs.writeFileSync('data.json', JSON.stringify(state, null, 2));
 
     if (fs.existsSync('data.json')) {
         try { state = JSON.parse(fs.readFileSync('data.json')); } catch(e){}
     }
 
-    const tickers = await fetchJson(`${BINANCE}/ticker/24hr`);
-    if (!tickers) {
-        console.log('Không lấy được dữ liệu Binance. Thử lại lần 2...');
-        await new Promise(r => setTimeout(r, 3000));
-        tickers = await fetchJson(`${BINANCE}/ticker/24hr`);
-    }
+    // Lấy dữ liệu từ Bybit
+    const res = await fetchJson(`${BYBIT}/tickers?category=linear`);
+    let tickers = res && res.result ? res.result.list : null;
 
     if (tickers) {
-        console.log('Đã lấy được tickers:', tickers.length);
-        const btcKl = await fetchJson(`${BINANCE}/klines?symbol=BTCUSDT&interval=4h&limit=200`);
-        if (btcKl) {
-            const closes = btcKl.map(x => parseFloat(x[4]));
+        console.log('Đã lấy được tickers Bybit:', tickers.length);
+        
+        // Lấy giá BTC
+        const btcRes = await fetchJson(`${BYBIT}/kline?category=linear&symbol=BTCUSDT&interval=240&limit=200`);
+        if (btcRes && btcRes.result && btcRes.result.list) {
+            const kl = btcRes.result.list.reverse();
+            const closes = kl.map(x => parseFloat(x[4]));
             state.btcRegime = { price: closes[closes.length-1], ret30: (closes[closes.length-1]/closes[closes.length-180]-1)*100 };
             state.btcRegime.routerMode = state.btcRegime.ret30 > 3 ? 'V40_BULL' : 'OFF';
         }
 
-        const topCoins = tickers.filter(t => t.symbol.endsWith('USDT') && parseFloat(t.quoteVolume) > 10000000).sort((a,b) => parseFloat(b.quoteVolume) - parseFloat(a.quoteVolume)).slice(0, 30);
+        const topCoins = tickers.filter(t => t.symbol.endsWith('USDT') && parseFloat(t.turnover24h) > 10000000).sort((a,b) => parseFloat(b.turnover24h) - parseFloat(a.turnover24h)).slice(0, 30);
         state.universe = topCoins.map(c => c.symbol);
 
         for (const coin of topCoins) {
             const sym = coin.symbol;
-            const kl = await fetchJson(`${BINANCE}/klines?symbol=${sym}&interval=4h&limit=300`);
-            if (!kl) continue;
+            const kRes = await fetchJson(`${BYBIT}/kline?category=linear&symbol=${sym}&interval=240&limit=300`);
+            if (!kRes || !kRes.result || !kRes.result.list) continue;
             
+            const kl = kRes.result.list.reverse();
             const kc = kl.map(x => ({ t: +x[0], o: +x[1], h: +x[2], l: +x[3], c: +x[4], v: +x[5] })).slice(0, -1);
             if(kc.length < 210) continue;
             
@@ -84,7 +87,7 @@ async function main() {
             await new Promise(r => setTimeout(r, 100));
         }
     } else {
-        console.log('Lỗi: GitHub Actions không thể kết nối tới Binance API.');
+        console.log('Lỗi: Không thể kết nối tới Bybit API.');
     }
 
     fs.writeFileSync('data.json', JSON.stringify(state, null, 2));
