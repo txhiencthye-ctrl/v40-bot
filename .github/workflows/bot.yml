@@ -1,0 +1,26 @@
+name: V40 Scanner Bot
+on:
+  schedule:
+    - cron: '*/5 * * * *' # Chạy 5 phút một lần
+  workflow_dispatch: # Cho phép bấm chạy thủ công
+
+jobs:
+  run-bot:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Run Bot
+        env:
+          TG_TOKEN: ${{ secrets.TG_TOKEN }}
+          TG_CHAT: ${{ secrets.TG_CHAT }}
+        run: node bot.js
+      - name: Save State
+        run: |
+          git config user.name "bot"
+          git config user.email "bot@users.noreply.github.com"
+          git add state.json
+          git commit -m "update state" || exit 0
+          git push
