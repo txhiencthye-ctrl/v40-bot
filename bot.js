@@ -2,16 +2,20 @@ const fs = require('fs');
 const TG_TOKEN = process.env.TG_TOKEN;
 const TG_CHAT = process.env.TG_CHAT;
 
-// Dùng đúng API Binance Futures giống bản HTML offline
+// Sử dụng một proxy công cộng để lách chặn IP của Binance
+const PROXY_URL = 'https://api.allorigins.win/raw?url=';
 const BINANCE = 'https://fapi.binance.com/fapi/v1';
 
 async function fetchJson(url) {
+    const targetUrl = PROXY_URL + encodeURIComponent(url);
     try { 
-        const r = await fetch(url); 
+        const r = await fetch(targetUrl, {
+            headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)' }
+        }); 
         if (r.ok) return await r.json(); 
-        console.log('Lỗi fetch:', r.status, url);
+        console.log('Lỗi fetch (Proxy):', r.status, url);
     } catch (e) { 
-        console.log('Lỗi mạng:', e.message); 
+        console.log('Lỗi mạng (Proxy):', e.message); 
     }
     return null;
 }
@@ -28,45 +32,11 @@ async function sendTG(msg) {
 
 function calcEMA(closes, p) { const e = new Array(closes.length).fill(0); let s = 0, k = 2 / (p + 1); for (let i = 0; i < closes.length; i++) { s += closes[i]; e[i] = i < p ? s / (i + 1) : closes[i] * k + e[i - 1] * (1 - k); } return e; }
 function calcATR(k, p) { const a = new Array(k.length).fill(0); if (k.length <= p) return a; const tr = [0]; for (let i = 1; i < k.length; i++) tr.push(Math.max(k[i].h - k[i].l, Math.abs(k[i].h - k[i - 1].c), Math.abs(k[i].l - k[i - 1].c))); let s = 0; for (let i = 1; i <= p; i++) s += tr[i]; a[p] = s / p; for (let i = p + 1; i < k.length; i++) a[i] = (a[i - 1] * (p - 1) + tr[i]) / p; return a; }
-
-function findPBLower(k, i, atr, ema50, ema200) { 
-    const a = atr[i], c = k[i].c; 
-    if (c < ema50[i]) return null; 
-    let pIdx = i, pv = -Infinity; 
-    for (let j = i - 20; j <= i; j++) if (k[j].h > pv) { pv = k[j].h; pIdx = j; } 
-    if (pIdx > i - 2 || pIdx < i - 12) return null; 
-    let sv = Infinity; 
-    for (let j = Math.max(0, pIdx - 20); j < pIdx; j++) if (k[j].l < sv) sv = k[j].l; 
-    const leg = pv - sv; if (leg < 3 * a) return null; 
-    const fib = (r) => pv - r * leg; 
-    let avgEntry = (fib(0.5) + fib(0.618)) / 2; 
-    let sl = sv - 0.75 * a; 
-    const risk = Math.abs(avgEntry - sl); if (!risk) return null; 
-    return { type: 'LONG', entryType: 'LIMIT', sigT: k[i].t, avgEntry, slTarget: sl, tpTarget: avgEntry + 3 * risk, rr: 3 }; 
-}
-
-function evaluateEngine(klines, i, s) { 
-    const isL = s.type === 'LONG'; const limit = s.avgEntry, slOrig = s.slTarget, tp = s.tpTarget; 
-    const risk = Math.abs(limit - slOrig); const last = klines.length - 1; 
-    let fillJ = -1, fillTime = null; 
-    if (s.entryType === 'MARKET') { fillJ = i; fillTime = klines[i].t; } 
-    else { 
-        for (let j = i + 1; j <= Math.min(i + 12, last); j++) { 
-            if (isL ? klines[j].l <= limit : klines[j].h >= limit) { fillJ = j; fillTime = klines[j].t; break; } 
-        } 
-        if (fillJ === -1) return { state: 'EXPIRED', netR: 0, fillTime: null }; 
-    } 
-    let finalState = 'RUNNING', closeIdx = -1, grossR = 0; 
-    for (let j = fillJ + 1; j <= last; j++) { 
-        if (isL ? klines[j].l <= slOrig : klines[j].h >= slOrig) { grossR = -1; finalState = 'SL'; closeIdx = j; break; } 
-        if (isL ? klines[j].h >= tp : klines[j].l <= tp) { grossR = s.rr; finalState = 'TP'; closeIdx = j; break; } 
-        if (j - fillJ >= 60) { finalState = 'TIME'; closeIdx = j; break; } 
-    } 
-    return { state: finalState, netR: grossR, grossR, fillTime, closeTime: closeIdx >= 0 ? klines[closeIdx].t : null }; 
-}
+function findPBLower(k, i, atr, ema50, ema200) { const a = atr[i], c = k[i].c; if (c < ema50[i]) return null; let pIdx = i, pv = -Infinity; for (let j = i - 20; j <= i; j++) if (k[j].h > pv) { pv = k[j].h; pIdx = j; } if (pIdx > i - 2 || pIdx < i - 12) return null; let sv = Infinity; for (let j = Math.max(0, pIdx - 20); j < pIdx; j++) if (k[j].l < sv) sv = k[j].l; const leg = pv - sv; if (leg < 3 * a) return null; const fib = (r) => pv - r * leg; let avgEntry = (fib(0.5) + fib(0.618)) / 2; let sl = sv - 0.75 * a; const risk = Math.abs(avgEntry - sl); if (!risk) return null; return { type: 'LONG', entryType: 'LIMIT', sigT: k[i].t, avgEntry, slTarget: sl, tpTarget: avgEntry + 3 * risk, rr: 3 }; }
+function evaluateEngine(klines, i, s) { const isL = s.type === 'LONG'; const limit = s.avgEntry, slOrig = s.slTarget, tp = s.tpTarget; const risk = Math.abs(limit - slOrig); const last = klines.length - 1; let fillJ = -1, fillTime = null; if (s.entryType === 'MARKET') { fillJ = i; fillTime = klines[i].t; } else { for (let j = i + 1; j <= Math.min(i + 12, last); j++) { if (isL ? klines[j].l <= limit : klines[j].h >= limit) { fillJ = j; fillTime = klines[j].t; break; } } if (fillJ === -1) return { state: 'EXPIRED', netR: 0, fillTime: null }; } let finalState = 'RUNNING', closeIdx = -1, grossR = 0; for (let j = fillJ + 1; j <= last; j++) { if (isL ? klines[j].l <= slOrig : klines[j].h >= slOrig) { grossR = -1; finalState = 'SL'; closeIdx = j; break; } if (isL ? klines[j].h >= tp : klines[j].l <= tp) { grossR = s.rr; finalState = 'TP'; closeIdx = j; break; } if (j - fillJ >= 60) { finalState = 'TIME'; closeIdx = j; break; } } return { state: finalState, netR: grossR, grossR, fillTime, closeTime: closeIdx >= 0 ? klines[closeIdx].t : null }; }
 
 async function main() {
-    console.log('Bắt đầu chạy bot (Dùng Binance Futures API)...');
+    console.log('Bắt đầu chạy bot (Sử dụng Proxy)...');
     let state = { positions: {}, btcRegime: null, universe: [] };
     fs.writeFileSync('data.json', JSON.stringify(state, null, 2));
 
@@ -76,7 +46,7 @@ async function main() {
 
     const tickers = await fetchJson(`${BINANCE}/ticker/24hr`);
     if (tickers) {
-        console.log('Đã lấy được tickers Binance:', tickers.length);
+        console.log('Đã lấy được tickers Binance qua Proxy:', tickers.length);
         
         const btcKl = await fetchJson(`${BINANCE}/klines?symbol=BTCUSDT&interval=4h&limit=200`);
         if (btcKl) {
@@ -86,7 +56,6 @@ async function main() {
             console.log('BTC Regime:', state.btcRegime.routerMode);
         }
 
-        // Lấy top 30 coin
         const topCoins = tickers.filter(t => t.symbol.endsWith('USDT') && parseFloat(t.quoteVolume) > 10000000).sort((a,b) => parseFloat(b.quoteVolume) - parseFloat(a.quoteVolume)).slice(0, 30);
         state.universe = topCoins.map(c => c.symbol);
         console.log('Đang quét', state.universe.length, 'coins...');
@@ -117,7 +86,7 @@ async function main() {
             await new Promise(r => setTimeout(r, 150));
         }
     } else {
-        console.log('Lỗi: Không thể kết nối Binance API.');
+        console.log('Lỗi: Vẫn không thể kết nối Binance API kể cả qua Proxy.');
     }
 
     fs.writeFileSync('data.json', JSON.stringify(state, null, 2));
