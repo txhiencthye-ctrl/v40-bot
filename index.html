@@ -1,208 +1,89 @@
-<!DOCTYPE html>
-<html lang="vi">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<title>V40 Router-C — Quant Trading</title>
-<script src="https://cdn.tailwindcss.com"></script>
-<style>
-  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@500;700;800&display=swap');
-  :root{--bg-primary:#0a0d14;--bg-secondary:#13181f;--bg-tertiary:#1a1f28;--border:#232932;--text-primary:#e8ecf3;--text-secondary:#8a95a5;--green:#16c784;--red:#ea3943;--yellow:#f5a623;--blue:#3861fb;--purple:#9945ff;}
-  body{background:var(--bg-primary);color:var(--text-primary);font-family:'Inter',sans-serif;-webkit-tap-highlight-color:transparent;}
-  .font-mono{font-family:'JetBrains Mono',monospace;font-feature-settings:'tnum';}
-  ::-webkit-scrollbar{width:6px;height:6px;}::-webkit-scrollbar-track{background:transparent;}::-webkit-scrollbar-thumb{background:var(--border);border-radius:10px;}
-  .hide-scroll::-webkit-scrollbar{display:none;}.hide-scroll{-ms-overflow-style:none;scrollbar-width:none;}
-  @keyframes fadeinout{0%{opacity:0;transform:translateY(20px);}10%{opacity:1;transform:translateY(0);}90%{opacity:1;transform:translateY(0);}100%{opacity:0;transform:translateY(-20px);}}
-  .toast{animation:fadeinout 3s forwards;}
-  @keyframes pulse-glow{0%,100%{opacity:1;}50%{opacity:0.6;}}.pulse-dot{animation:pulse-glow 2s infinite;}
-  .glass{background:rgba(19,24,31,0.85);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);}
-</style>
-</head>
-<body class="min-h-screen pb-8">
+const fs = require('fs');
+const TG_TOKEN = process.env.TG_TOKEN;
+const TG_CHAT = process.env.TG_CHAT;
+// Dùng Bybit để không bị chặn IP
+const BYBIT = 'https://api.bybit.com/v5/market';
 
-<div class="sticky top-0 z-40 glass border-b border-[#232932]">
-    <div class="max-w-[1400px] mx-auto px-4 py-3 flex justify-between items-center">
-        <div class="flex-1 min-w-0 pr-3">
-            <div class="flex items-center gap-2"><div class="w-2 h-2 rounded-full bg-[#16c784] pulse-dot"></div><h1 class="text-lg font-black tracking-tight">V40 <span class="text-[#8a95a5] font-mono text-xs">Live (Cloud)</span></h1></div>
-            <div id="scan-status" class="text-[11px] text-[#8a95a5] font-mono mt-0.5 truncate">Đang tải dữ liệu...</div>
-        </div>
-        <div class="flex items-center gap-1.5 shrink-0">
-            <button onclick="loadLiveData(true)" class="bg-[#f5a623] text-black p-2 rounded-lg font-bold hover:bg-[#f5a623]/90">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
-            </button>
-        </div>
-    </div>
-</div>
-
-<div class="max-w-[1400px] mx-auto p-4 space-y-4">
-  <div class="bg-[#13181f] border border-[#232932] rounded-2xl p-4">
-      <div class="flex justify-between items-center mb-3 flex-wrap gap-2">
-          <div class="flex items-center gap-2"><span class="text-xs font-black text-[#e8ecf3] uppercase tracking-wider">🎯 BTC Vĩ Mô</span><span id="btc-zone-badge" class="px-2.5 py-1 rounded-lg text-[10px] font-black uppercase font-mono bg-[#1a1f28] text-[#8a95a5]">--</span></div>
-          <div id="regime-card" class="flex items-center gap-2 bg-[#0a0d14] border border-[#232932] rounded-lg px-3 py-1.5"><span class="text-[9px] text-[#8a95a5] font-black uppercase">Router</span><span id="router-mode" class="font-mono font-black text-[#8a95a5] text-xs">--</span></div>
-      </div>
-      <div class="grid grid-cols-3 sm:grid-cols-5 gap-2">
-          <div class="bg-[#0a0d14] border border-[#232932] rounded-xl p-3"><div class="text-[9px] text-[#8a95a5] font-black uppercase mb-1">BTC</div><div id="btc-macro-pos" class="font-mono font-bold text-[#e8ecf3] text-sm">--</div></div>
-          <div class="bg-[#0a0d14] border border-[#232932] rounded-xl p-3"><div class="text-[9px] text-[#8a95a5] font-black uppercase mb-1">30d</div><div id="btc-30d" class="font-mono font-bold text-[#8a95a5] text-sm">--</div></div>
-          <div class="bg-[#0a0d14] border border-[#232932] rounded-xl p-3"><div class="text-[9px] text-[#8a95a5] font-black uppercase mb-1">60d</div><div id="btc-60d" class="font-mono font-bold text-[#8a95a5] text-sm">--</div></div>
-          <div class="bg-[#0a0d14] border border-[#232932] rounded-xl p-3"><div class="text-[9px] text-[#8a95a5] font-black uppercase mb-1">Breadth (>EMA50)</div><div id="btc-breadth" class="font-mono font-bold text-[#f5a623] text-sm">--</div></div>
-          <div class="bg-[#0a0d14] border border-[#232932] rounded-xl p-3"><div class="text-[9px] text-[#8a95a5] font-black uppercase mb-1">Exposure</div><div id="btc-macro-atr" class="font-mono font-bold text-[#16c784] text-sm">--</div></div>
-      </div>
-  </div>
-
-  <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
-      <div class="bg-[#13181f] border border-[#232932] rounded-2xl p-4"><div class="text-[10px] text-[#8a95a5] font-black uppercase mb-1">Đang Mở</div><div id="stat-running" class="text-2xl font-black text-[#3861fb] font-mono">0</div></div>
-      <div class="bg-[#13181f] border border-[#232932] rounded-2xl p-4"><div class="text-[10px] text-[#8a95a5] font-black uppercase mb-1">Winrate</div><div id="stat-winrate" class="text-2xl font-black text-[#16c784] font-mono">0%</div><div id="stat-partial" class="text-[10px] text-[#8a95a5] font-bold mt-0.5">0W / 0L</div></div>
-      <div class="bg-[#13181f] border border-[#232932] rounded-2xl p-4"><div class="text-[10px] text-[#8a95a5] font-black uppercase mb-1">Kỳ Vọng</div><div id="stat-expectancy" class="text-2xl font-black text-[#e8ecf3] font-mono">0.00R</div></div>
-      <div class="bg-[#13181f] border border-[#232932] rounded-2xl p-4">
-          <div class="flex justify-between items-center mb-1"><span class="text-[10px] text-[#8a95a5] font-black uppercase">NET</span></div>
-          <div id="stat-pnl-usd" class="text-2xl font-black font-mono">$0</div>
-          <div class="flex justify-between items-center mt-0.5"><span id="stat-pnl" class="text-[10px] font-bold font-mono">0.00R</span><span id="stat-count" class="text-[9px] text-[#8a95a5] font-bold"></span></div>
-      </div>
-  </div>
-
-  <div class="flex gap-2 p-1 bg-[#13181f] border border-[#232932] rounded-2xl">
-      <button id="tab-btn-opp" onclick="switchMainTab('opp')" class="flex-1 py-3 text-sm font-black rounded-xl transition-all bg-[#f5a623] text-black flex items-center justify-center gap-2">🎯 CƠ HỘI</button>
-      <button id="tab-btn-history" onclick="switchMainTab('history')" class="flex-1 py-3 text-sm font-black rounded-xl transition-all text-[#8a95a5] hover:text-[#e8ecf3] flex items-center justify-center gap-2">📖 LỊCH SỬ</button>
-  </div>
-
-  <div id="section-opp" class="space-y-4 block">
-      <div id="running-section" class="space-y-3"></div>
-      <div id="waiting-section" class="space-y-3"></div>
-  </div>
-
-  <div id="section-history" class="space-y-4 hidden">
-      <div id="closed-board" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
-  </div>
-</div>
-
-<script>
-let globalLogs = [];
-let currentBtcRegime = null;
-
-function switchMainTab(tabName){
-    const tabs=['opp','history'];const sections={opp:'section-opp',history:'section-history'};const btns={opp:'tab-btn-opp',history:'tab-btn-history'};
-    tabs.forEach(t=>{const btn=document.getElementById(btns[t]);const sec=document.getElementById(sections[t]);
-        if(t===tabName){btn.className="flex-1 py-3 text-sm font-black rounded-xl transition-all bg-[#f5a623] text-black flex items-center justify-center gap-2";sec.style.display='block';}
-        else{btn.className="flex-1 py-3 text-sm font-black rounded-xl transition-all text-[#8a95a5] hover:text-[#e8ecf3] flex items-center justify-center gap-2";sec.style.display='none';}
-    });
+async function fetchJson(url) {
+    try { 
+        const r = await fetch(url); 
+        if (r.ok) return await r.json(); 
+        console.log('Lỗi fetch:', r.status, url);
+    } catch (e) { console.log('Lỗi mạng:', e.message); }
+    return null;
 }
 
-const formatPrice=(p)=>{if(!p&&p!==0)return'--';const ap=Math.abs(p);if(ap===0)return'0';if(ap<0.00001)return p.toFixed(8);if(ap<0.0001)return p.toFixed(7);if(ap<0.001)return p.toFixed(6);if(ap<0.01)return p.toFixed(5);if(ap<1)return p.toFixed(4);if(ap<100)return p.toFixed(3);return p.toFixed(2);};
-const formatTime=(ms)=>{if(!ms)return'--';const d=new Date(ms);return`${d.getDate().toString().padStart(2,'0')}/${(d.getMonth()+1).toString().padStart(2,'0')} ${d.getHours().toString().padStart(2,'0')}:${d.getMinutes().toString().padStart(2,'0')}`;};
-
-function getStateColor(state){
-    if(state==='WAITING')return{text:'#f5a623',bg:'rgba(245,166,35,0.1)',border:'rgba(245,166,35,0.3)'};
-    if(state==='RUNNING')return{text:'#3861fb',bg:'rgba(56,97,251,0.1)',border:'rgba(56,97,251,0.3)'};
-    if(state==='SL')return{text:'#ea3943',bg:'rgba(234,57,67,0.1)',border:'rgba(234,57,67,0.3)'};
-    if(state==='TP')return{text:'#16c784',bg:'rgba(22,199,132,0.1)',border:'rgba(22,199,132,0.3)'};
-    if(state==='EXPIRED')return{text:'#8a95a5',bg:'rgba(138,149,165,0.1)',border:'rgba(138,149,165,0.3)'};
-    return{text:'#8a95a5',bg:'rgba(138,149,165,0.1)',border:'rgba(138,149,165,0.3)'};
-}
-
-function getZoneColor(zone){
-    if(zone==='LOWER')return{text:'#16c784',bg:'rgba(22,199,132,0.12)'};
-    if(zone==='SHORT_VAH')return{text:'#ea3943',bg:'rgba(234,57,67,0.12)'};
-    return{text:'#8a95a5',bg:'rgba(138,149,165,0.12)'};
-}
-
-function buildCard(s) {
-    const zoneColor = getZoneColor(s.zone);
-    const stColor = getStateColor(s.state);
-    const isShort = s.type === 'SHORT';
-    const sideColor = isShort ? '#ea3943' : '#16c784';
-    const netR = s.eval?.netR || 0;
-    const netStr = s.eval?.isComplete ? (netR > 0 ? '+' : '') + netR.toFixed(2) + 'R' : (s.state === 'RUNNING' ? '~ ' + netR.toFixed(2) + 'R' : '');
-    
-    return `<div class="relative bg-[#13181f] border border-[#232932] rounded-2xl overflow-hidden">
-        <div class="absolute left-0 top-0 bottom-0 w-1" style="background:${sideColor}"></div>
-        <div class="p-4 pl-5">
-            <div class="flex justify-between items-start mb-3">
-                <div>
-                    <div class="flex items-center gap-1.5 flex-wrap mb-1">
-                        <span class="text-xl font-black text-[#e8ecf3]">${s.sym.replace('USDT','')}</span>
-                        <span class="text-[10px] font-bold px-1.5 py-0.5 rounded" style="background:${zoneColor.bg};color:${zoneColor.text}">${s.zone}</span>
-                    </div>
-                    <div class="text-xs font-bold" style="color:${sideColor}">${isShort?'SHORT':'LONG'} · RR ${(s.rr||0).toFixed(1)}R</div>
-                </div>
-                <div class="text-right flex flex-col items-end gap-1">
-                    <span class="text-[10px] font-black px-2 py-0.5 rounded" style="background:${stColor.bg};color:${stColor.text};border:1px solid ${stColor.border}">${s.state}</span>
-                    ${netStr?`<div class="font-bold font-mono text-sm" style="color:${netR>0?'#16c784':(netR<0?'#ea3943':'#8a95a5')}">${netStr}</div>`:''}
-                </div>
-            </div>
-            <div class="grid grid-cols-3 gap-1 bg-[#0a0d14] rounded-xl p-2 mb-3 border border-[#232932]">
-                <div class="text-center"><div class="text-[9px] text-[#8a95a5] font-bold uppercase">Entry</div><div class="text-xs font-bold font-mono text-[#e8ecf3]">${formatPrice(s.avgEntry)}</div></div>
-                <div class="text-center border-l border-[#232932]"><div class="text-[9px] text-[#ea3943] font-bold uppercase">SL</div><div class="text-xs font-bold font-mono text-[#ea3943]">${formatPrice(s.slTarget)}</div></div>
-                <div class="text-center border-l border-[#232932]"><div class="text-[9px] text-[#16c784] font-bold uppercase">TP</div><div class="text-xs font-bold font-mono text-[#16c784]">${formatPrice(s.tpTarget)}</div></div>
-            </div>
-            <div class="flex justify-between text-[10px] text-[#8a95a5] font-bold">
-                <span>Tạo: <span class="font-mono text-[#e8ecf3]">${formatTime(s.sigT)}</span></span>
-                <span>Khớp: <span class="font-mono text-[#e8ecf3]">${s.eval?.fillTime?formatTime(s.eval.fillTime):'--'}</span></span>
-            </div>
-        </div>
-    </div>`;
-}
-
-function renderDashboards() {
-    const running = globalLogs.filter(p => p.state === 'RUNNING');
-    const waiting = globalLogs.filter(p => p.state === 'WAITING');
-    const closed = globalLogs.filter(p => ['TP','SL','EXPIRED'].includes(p.state));
-
-    document.getElementById('running-section').innerHTML = running.length ? `<div class="grid grid-cols-1 md:grid-cols-3 gap-4">${running.map(buildCard).join('')}</div>` : '';
-    document.getElementById('waiting-section').innerHTML = waiting.length ? `<div class="grid grid-cols-1 md:grid-cols-3 gap-4">${waiting.map(buildCard).join('')}</div>` : '';
-    document.getElementById('closed-board').innerHTML = closed.length ? closed.map(buildCard).join('') : `<div class="col-span-full text-center py-10 text-[#8a95a5]">Chưa có lệnh nào đóng</div>`;
-
-    const wins = closed.filter(p => p.eval?.netR > 0).length;
-    const losses = closed.filter(p => p.eval?.netR < 0).length;
-    const totalR = closed.reduce((a,p) => a + (p.eval?.netR || 0), 0);
-    const winrate = (wins+losses) > 0 ? (wins/(wins+losses)*100) : 0;
-
-    document.getElementById('stat-running').innerText = running.length;
-    document.getElementById('stat-winrate').innerText = winrate.toFixed(1) + '%';
-    document.getElementById('stat-partial').innerText = `${wins}W / ${losses}L`;
-    document.getElementById('stat-expectancy').innerText = (closed.length > 0 ? (totalR/closed.length).toFixed(2) : '0.00') + 'R';
-    document.getElementById('stat-pnl-usd').innerText = (totalR * 10).toFixed(2) + '$';
-    document.getElementById('stat-pnl').innerText = (totalR > 0 ? '+' : '') + totalR.toFixed(2) + 'R';
-    document.getElementById('stat-count').innerText = `${closed.length} đóng`;
-
-    if (currentBtcRegime) {
-        document.getElementById('btc-macro-pos').innerText = '$' + formatPrice(currentBtcRegime.price);
-        const d30 = document.getElementById('btc-30d');
-        d30.innerText = (currentBtcRegime.ret30 > 0 ? '+' : '') + currentBtcRegime.ret30.toFixed(1) + '%';
-        d30.className = `font-mono font-bold text-sm ${currentBtcRegime.ret30 > 3 ? 'text-[#16c784]' : currentBtcRegime.ret30 < -3 ? 'text-[#ea3943]' : 'text-[#8a95a5]'}`;
-        
-        const routerEl = document.getElementById('router-mode');
-        routerEl.innerText = currentBtcRegime.routerMode || 'OFF';
-        routerEl.style.color = currentBtcRegime.routerMode === 'V40_BULL' ? '#16c784' : (currentBtcRegime.routerMode === 'SV_BEAR' ? '#ea3943' : '#8a95a5');
-        
-        const zoneEl = document.getElementById('btc-zone-badge');
-        zoneEl.innerText = currentBtcRegime.routerMode === 'V40_BULL' ? 'BULLISH' : (currentBtcRegime.routerMode === 'SV_BEAR' ? 'BEARISH' : 'SIDEWAY');
-        zoneEl.className = `px-2.5 py-1 rounded-lg text-[10px] font-black uppercase font-mono ${currentBtcRegime.routerMode==='V40_BULL'?'bg-[#16c784]/15 text-[#16c784] border border-[#16c784]/30':(currentBtcRegime.routerMode==='SV_BEAR'?'bg-[#ea3943]/15 text-[#ea3943] border border-[#ea3943]/30':'bg-[#1a1f28] text-[#8a95a5] border border-[#232932]')}`;
-    }
-}
-
-async function loadLiveData(manual = false) {
-    if(manual) document.getElementById('scan-status').innerText = 'Đang tải dữ liệu...';
+async function sendTG(msg) {
+    if (!TG_TOKEN || !TG_CHAT) return;
     try {
-        const res = await fetch('data.json?t=' + Date.now());
-        if (!res.ok) throw new Error('Lỗi tải file data.json');
-        const data = await res.json();
-        
-        globalLogs = Object.values(data.positions || {});
-        currentBtcRegime = data.btcRegime || { price: 0, ret30: 0, routerMode: 'OFF' };
-        
-        const now = new Date();
-        document.getElementById('scan-status').innerText = `Cập nhật: ${now.toLocaleTimeString('vi-VN')} (${globalLogs.length} kèo)`;
-        renderDashboards();
-    } catch (e) {
-        document.getElementById('scan-status').innerText = 'Lỗi: ' + e.message;
-    }
+        await fetch(`https://api.telegram.org/bot${TG_TOKEN}/sendMessage`, {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ chat_id: TG_CHAT, text: msg, parse_mode: 'HTML' })
+        });
+    } catch(e) {}
 }
 
-document.addEventListener('DOMContentLoaded', () => {
-    switchMainTab('opp');
-    loadLiveData();
-    setInterval(() => loadLiveData(), 30000);
-});
-</script>
-</body>
-</html>
+function calcEMA(closes, p) { const e = new Array(closes.length).fill(0); let s = 0, k = 2 / (p + 1); for (let i = 0; i < closes.length; i++) { s += closes[i]; e[i] = i < p ? s / (i + 1) : closes[i] * k + e[i - 1] * (1 - k); } return e; }
+function calcATR(k, p) { const a = new Array(k.length).fill(0); if (k.length <= p) return a; const tr = [0]; for (let i = 1; i < k.length; i++) tr.push(Math.max(k[i].h - k[i].l, Math.abs(k[i].h - k[i - 1].c), Math.abs(k[i].l - k[i - 1].c))); let s = 0; for (let i = 1; i <= p; i++) s += tr[i]; a[p] = s / p; for (let i = p + 1; i < k.length; i++) a[i] = (a[i - 1] * (p - 1) + tr[i]) / p; return a; }
+function findPBLower(k, i, atr, ema50, ema200) { const a = atr[i], c = k[i].c; if (c < ema50[i]) return null; let pIdx = i, pv = -Infinity; for (let j = i - 20; j <= i; j++) if (k[j].h > pv) { pv = k[j].h; pIdx = j; } if (pIdx > i - 2 || pIdx < i - 12) return null; let sv = Infinity; for (let j = Math.max(0, pIdx - 20); j < pIdx; j++) if (k[j].l < sv) sv = k[j].l; const leg = pv - sv; if (leg < 3 * a) return null; const fib = (r) => pv - r * leg; let avgEntry = (fib(0.5) + fib(0.618)) / 2; let sl = sv - 0.75 * a; const risk = Math.abs(avgEntry - sl); if (!risk) return null; return { type: 'LONG', entryType: 'LIMIT', sigT: k[i].t, avgEntry, slTarget: sl, tpTarget: avgEntry + 3 * risk, rr: 3 }; }
+function evaluateEngine(klines, i, s) { const isL = s.type === 'LONG'; const limit = s.avgEntry, slOrig = s.slTarget, tp = s.tpTarget; const risk = Math.abs(limit - slOrig); const last = klines.length - 1; let fillJ = -1, fillTime = null; if (s.entryType === 'MARKET') { fillJ = i; fillTime = klines[i].t; } else { for (let j = i + 1; j <= Math.min(i + 12, last); j++) { if (isL ? klines[j].l <= limit : klines[j].h >= limit) { fillJ = j; fillTime = klines[j].t; break; } } if (fillJ === -1) return { state: 'EXPIRED', netR: 0, fillTime: null }; } let finalState = 'RUNNING', closeIdx = -1, grossR = 0; for (let j = fillJ + 1; j <= last; j++) { if (isL ? klines[j].l <= slOrig : klines[j].h >= slOrig) { grossR = -1; finalState = 'SL'; closeIdx = j; break; } if (isL ? klines[j].h >= tp : klines[j].l <= tp) { grossR = s.rr; finalState = 'TP'; closeIdx = j; break; } if (j - fillJ >= 60) { finalState = 'TIME'; closeIdx = j; break; } } return { state: finalState, netR: grossR, grossR, fillTime, closeTime: closeIdx >= 0 ? klines[closeIdx].t : null }; }
+
+async function main() {
+    console.log('Bắt đầu chạy bot...');
+    let state = { positions: {}, btcRegime: null, universe: [] };
+    fs.writeFileSync('data.json', JSON.stringify(state, null, 2));
+
+    if (fs.existsSync('data.json')) {
+        try { state = JSON.parse(fs.readFileSync('data.json')); } catch(e){}
+    }
+
+    const res = await fetchJson(`${BYBIT}/tickers?category=linear`);
+    const tickers = res && res.result ? res.result.list : null;
+
+    if (tickers) {
+        console.log('Đã lấy được tickers Bybit:', tickers.length);
+        
+        const btcRes = await fetchJson(`${BYBIT}/kline?category=linear&symbol=BTCUSDT&interval=240&limit=200`);
+        if (btcRes && btcRes.result && btcRes.result.list) {
+            const kl = btcRes.result.list.reverse();
+            const closes = kl.map(x => parseFloat(x[4]));
+            state.btcRegime = { price: closes[closes.length-1], ret30: (closes[closes.length-1]/closes[closes.length-180]-1)*100 };
+            state.btcRegime.routerMode = state.btcRegime.ret30 > 3 ? 'V40_BULL' : 'OFF';
+        }
+
+        const topCoins = tickers.filter(t => t.symbol.endsWith('USDT') && parseFloat(t.turnover24h) > 10000000).sort((a,b) => parseFloat(b.turnover24h) - parseFloat(a.turnover24h)).slice(0, 30);
+        state.universe = topCoins.map(c => c.symbol);
+
+        for (const coin of topCoins) {
+            const sym = coin.symbol;
+            const kRes = await fetchJson(`${BYBIT}/kline?category=linear&symbol=${sym}&interval=240&limit=300`);
+            if (!kRes || !kRes.result || !kRes.result.list) continue;
+            
+            const kl = kRes.result.list.reverse();
+            const kc = kl.map(x => ({ t: +x[0], o: +x[1], h: +x[2], l: +x[3], c: +x[4], v: +x[5] })).slice(0, -1);
+            if(kc.length < 210) continue;
+            
+            const closes = kc.map(x => x.c); const atr = calcATR(kc, 14); const ema50 = calcEMA(closes, 50); const ema200 = calcEMA(closes, 200);
+
+            for (let j = Math.max(210, kc.length - 180); j < kc.length; j++) {
+                const sigL = findPBLower(kc, j, atr, ema50, ema200);
+                if (sigL) {
+                    const key = `v40_${sym}_${sigL.sigT}`;
+                    if (!state.positions[key]) {
+                        sigL.sym = sym; sigL.zone = 'LOWER';
+                        sigL.eval = evaluateEngine(kc, j, sigL); sigL.state = sigL.eval.state;
+                        state.positions[key] = sigL;
+                        if (sigL.state === 'WAITING') await sendTG(`🎯 <b>SIGNAL</b> ${sym}`);
+                    }
+                }
+            }
+            await new Promise(r => setTimeout(r, 100));
+        }
+    } else {
+        console.log('Lỗi: Không thể kết nối Bybit API.');
+    }
+
+    fs.writeFileSync('data.json', JSON.stringify(state, null, 2));
+    console.log('Hoàn tất!');
+}
+main();
