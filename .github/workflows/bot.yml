@@ -1,7 +1,7 @@
 name: V40 Bot Background
 on:
   schedule:
-    - cron: '*/10 * * * *' # Chạy mỗi 10 phút
+    - cron: '*/10 * * * *'
   workflow_dispatch:
 
 permissions:
@@ -14,15 +14,18 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with: { node-version: '20' }
+        
       - name: Run Bot
         env:
           TG_TOKEN: ${{ secrets.TG_TOKEN }}
           TG_CHAT: ${{ secrets.TG_CHAT }}
         run: node bot.js
+        
       - name: Commit Data
         run: |
           git config user.name "Bot"
           git config user.email "bot@users.noreply.github.com"
+          touch data.json
           git add data.json
           git commit -m "Update Data" || exit 0
           git push
