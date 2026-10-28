@@ -5947,11 +5947,403 @@
         "closeTime": 1792843200000
       },
       "state": "SL"
+    },
+    "v40_ZECUSDT_1793188800000": {
+      "type": "LONG",
+      "entryType": "LIMIT",
+      "sigT": 1793188800000,
+      "avgEntry": 1243.92114,
+      "slTarget": 1148.9181822139667,
+      "tpTarget": 1528.9300133580996,
+      "rr": 3,
+      "sym": "ZECUSDT",
+      "zone": "LOWER",
+      "eval": {
+        "state": "EXPIRED",
+        "netR": 0,
+        "fillTime": null
+      },
+      "state": "EXPIRED"
+    },
+    "v40_SPCXUSDT_1793145600000": {
+      "type": "LONG",
+      "entryType": "LIMIT",
+      "sigT": 1793145600000,
+      "avgEntry": 147.88351999999998,
+      "slTarget": 143.41326994076542,
+      "tpTarget": 161.29427017770365,
+      "rr": 3,
+      "sym": "SPCXUSDT",
+      "zone": "LOWER",
+      "eval": {
+        "state": "RUNNING",
+        "netR": 0,
+        "grossR": 0,
+        "fillTime": 1793188800000,
+        "closeTime": null
+      },
+      "state": "RUNNING"
+    },
+    "v40_SPCXUSDT_1793160000000": {
+      "type": "LONG",
+      "entryType": "LIMIT",
+      "sigT": 1793160000000,
+      "avgEntry": 147.88351999999998,
+      "slTarget": 143.4973220878536,
+      "tpTarget": 161.0421137364391,
+      "rr": 3,
+      "sym": "SPCXUSDT",
+      "zone": "LOWER",
+      "eval": {
+        "state": "RUNNING",
+        "netR": 0,
+        "grossR": 0,
+        "fillTime": 1793188800000,
+        "closeTime": null
+      },
+      "state": "RUNNING"
+    },
+    "v40_XRPUSDT_1793174400000": {
+      "type": "LONG",
+      "entryType": "LIMIT",
+      "sigT": 1793174400000,
+      "avgEntry": 1.2985737999999998,
+      "slTarget": 1.2484263700628384,
+      "tpTarget": 1.4490160898114839,
+      "rr": 3,
+      "sym": "XRPUSDT",
+      "zone": "LOWER",
+      "eval": {
+        "state": "EXPIRED",
+        "netR": 0,
+        "fillTime": null
+      },
+      "state": "EXPIRED"
+    },
+    "v40_NEARUSDT_1793160000000": {
+      "type": "LONG",
+      "entryType": "LIMIT",
+      "sigT": 1793160000000,
+      "avgEntry": 4.464159,
+      "slTarget": 4.092953279019424,
+      "tpTarget": 5.5777761629417295,
+      "rr": 3,
+      "sym": "NEARUSDT",
+      "zone": "LOWER",
+      "eval": {
+        "state": "EXPIRED",
+        "netR": 0,
+        "fillTime": null
+      },
+      "state": "EXPIRED"
+    },
+    "v40_BNBUSDT_1793145600000": {
+      "type": "LONG",
+      "entryType": "LIMIT",
+      "sigT": 1793145600000,
+      "avgEntry": 734.07284,
+      "slTarget": 711.6841926655816,
+      "tpTarget": 801.2387820032554,
+      "rr": 3,
+      "sym": "BNBUSDT",
+      "zone": "LOWER",
+      "eval": {
+        "state": "EXPIRED",
+        "netR": 0,
+        "fillTime": null
+      },
+      "state": "EXPIRED"
+    },
+    "v40_BNBUSDT_1793160000000": {
+      "type": "LONG",
+      "entryType": "LIMIT",
+      "sigT": 1793160000000,
+      "avgEntry": 734.07284,
+      "slTarget": 711.92121461804,
+      "tpTarget": 800.52771614588,
+      "rr": 3,
+      "sym": "BNBUSDT",
+      "zone": "LOWER",
+      "eval": {
+        "state": "EXPIRED",
+        "netR": 0,
+        "fillTime": null
+      },
+      "state": "EXPIRED"
+    },
+    "v40_ENAUSDT_1793145600000": {
+      "type": "LONG",
+      "entryType": "LIMIT",
+      "sigT": 1793145600000,
+      "avgEntry": 0.19806188,
+      "slTarget": 0.17768753979270974,
+      "tpTarget": 0.2591849006218708,
+      "rr": 3,
+      "sym": "ENAUSDT",
+      "zone": "LOWER",
+      "eval": {
+        "state": "RUNNING",
+        "netR": 0,
+        "grossR": 0,
+        "fillTime": 1793188800000,
+        "closeTime": null
+      },
+      "state": "RUNNING"
+    },
+    "v40_ENAUSDT_1793160000000": {
+      "type": "LONG",
+      "entryType": "LIMIT",
+      "sigT": 1793160000000,
+      "avgEntry": 0.19806188,
+      "slTarget": 0.1779339655218019,
+      "tpTarget": 0.25844562343459426,
+      "rr": 3,
+      "sym": "ENAUSDT",
+      "zone": "LOWER",
+      "eval": {
+        "state": "RUNNING",
+        "netR": 0,
+        "grossR": 0,
+        "fillTime": 1793188800000,
+        "closeTime": null
+      },
+      "state": "RUNNING"
+    },
+    "v40_ENAUSDT_1793174400000": {
+      "type": "LONG",
+      "entryType": "LIMIT",
+      "sigT": 1793174400000,
+      "avgEntry": 0.19806188,
+      "slTarget": 0.17783975369881605,
+      "tpTarget": 0.25872825890355183,
+      "rr": 3,
+      "sym": "ENAUSDT",
+      "zone": "LOWER",
+      "eval": {
+        "state": "RUNNING",
+        "netR": 0,
+        "grossR": 0,
+        "fillTime": 1793188800000,
+        "closeTime": null
+      },
+      "state": "RUNNING"
+    },
+    "v40_AINUSDT_1793145600000": {
+      "type": "LONG",
+      "entryType": "LIMIT",
+      "sigT": 1793145600000,
+      "avgEntry": 0.09484897,
+      "slTarget": 0.022261448904648727,
+      "tpTarget": 0.31261153328605384,
+      "rr": 3,
+      "sym": "AINUSDT",
+      "zone": "LOWER",
+      "eval": {
+        "state": "EXPIRED",
+        "netR": 0,
+        "fillTime": null
+      },
+      "state": "EXPIRED"
+    },
+    "v40_AINUSDT_1793160000000": {
+      "type": "LONG",
+      "entryType": "LIMIT",
+      "sigT": 1793160000000,
+      "avgEntry": 0.09484897,
+      "slTarget": 0.022680988268602393,
+      "tpTarget": 0.31135291519419284,
+      "rr": 3,
+      "sym": "AINUSDT",
+      "zone": "LOWER",
+      "eval": {
+        "state": "EXPIRED",
+        "netR": 0,
+        "fillTime": null
+      },
+      "state": "EXPIRED"
+    },
+    "v40_AINUSDT_1793174400000": {
+      "type": "LONG",
+      "entryType": "LIMIT",
+      "sigT": 1793174400000,
+      "avgEntry": 0.09484897,
+      "slTarget": 0.02191127482084508,
+      "tpTarget": 0.31366205553746473,
+      "rr": 3,
+      "sym": "AINUSDT",
+      "zone": "LOWER",
+      "eval": {
+        "state": "EXPIRED",
+        "netR": 0,
+        "fillTime": null
+      },
+      "state": "EXPIRED"
+    },
+    "v40_AINUSDT_1793188800000": {
+      "type": "LONG",
+      "entryType": "LIMIT",
+      "sigT": 1793188800000,
+      "avgEntry": 0.09484897,
+      "slTarget": 0.021834576619356144,
+      "tpTarget": 0.3138921501419316,
+      "rr": 3,
+      "sym": "AINUSDT",
+      "zone": "LOWER",
+      "eval": {
+        "state": "EXPIRED",
+        "netR": 0,
+        "fillTime": null
+      },
+      "state": "EXPIRED"
+    },
+    "v40_SAMSUNGUSDT_1792569600000": {
+      "type": "LONG",
+      "entryType": "LIMIT",
+      "sigT": 1792569600000,
+      "avgEntry": 157.53072,
+      "slTarget": 143.0057616777342,
+      "tpTarget": 201.1055949667974,
+      "rr": 3,
+      "sym": "SAMSUNGUSDT",
+      "zone": "LOWER",
+      "eval": {
+        "state": "RUNNING",
+        "netR": 0,
+        "grossR": 0,
+        "fillTime": 1792684800000,
+        "closeTime": null
+      },
+      "state": "RUNNING"
+    },
+    "v40_SAMSUNGUSDT_1792584000000": {
+      "type": "LONG",
+      "entryType": "LIMIT",
+      "sigT": 1792584000000,
+      "avgEntry": 157.53072,
+      "slTarget": 142.91124298646747,
+      "tpTarget": 201.3891510405976,
+      "rr": 3,
+      "sym": "SAMSUNGUSDT",
+      "zone": "LOWER",
+      "eval": {
+        "state": "RUNNING",
+        "netR": 0,
+        "grossR": 0,
+        "fillTime": 1792684800000,
+        "closeTime": null
+      },
+      "state": "RUNNING"
+    },
+    "v40_SAMSUNGUSDT_1792598400000": {
+      "type": "LONG",
+      "entryType": "LIMIT",
+      "sigT": 1792598400000,
+      "avgEntry": 157.53072,
+      "slTarget": 142.9986542017198,
+      "tpTarget": 201.1269173948406,
+      "rr": 3,
+      "sym": "SAMSUNGUSDT",
+      "zone": "LOWER",
+      "eval": {
+        "state": "RUNNING",
+        "netR": 0,
+        "grossR": 0,
+        "fillTime": 1792684800000,
+        "closeTime": null
+      },
+      "state": "RUNNING"
+    },
+    "v40_SAMSUNGUSDT_1793001600000": {
+      "type": "LONG",
+      "entryType": "LIMIT",
+      "sigT": 1793001600000,
+      "avgEntry": 158.35614999999999,
+      "slTarget": 151.91009806493676,
+      "tpTarget": 177.69430580518966,
+      "rr": 3,
+      "sym": "SAMSUNGUSDT",
+      "zone": "LOWER",
+      "eval": {
+        "state": "EXPIRED",
+        "netR": 0,
+        "fillTime": null
+      },
+      "state": "EXPIRED"
+    },
+    "v40_SAMSUNGUSDT_1793088000000": {
+      "type": "LONG",
+      "entryType": "LIMIT",
+      "sigT": 1793088000000,
+      "avgEntry": 164.33447999999999,
+      "slTarget": 157.27679554931663,
+      "tpTarget": 185.50753335205005,
+      "rr": 3,
+      "sym": "SAMSUNGUSDT",
+      "zone": "LOWER",
+      "eval": {
+        "state": "EXPIRED",
+        "netR": 0,
+        "fillTime": null
+      },
+      "state": "EXPIRED"
+    },
+    "v40_DRAMUSDT_1792569600000": {
+      "type": "LONG",
+      "entryType": "LIMIT",
+      "sigT": 1792569600000,
+      "avgEntry": 46.344390000000004,
+      "slTarget": 42.558612511164995,
+      "tpTarget": 57.70172246650503,
+      "rr": 3,
+      "sym": "DRAMUSDT",
+      "zone": "LOWER",
+      "eval": {
+        "state": "RUNNING",
+        "netR": 0,
+        "grossR": 0,
+        "fillTime": 1792670400000,
+        "closeTime": null
+      },
+      "state": "RUNNING"
+    },
+    "v40_DRAMUSDT_1793001600000": {
+      "type": "LONG",
+      "entryType": "LIMIT",
+      "sigT": 1793001600000,
+      "avgEntry": 46.25468,
+      "slTarget": 44.11384028149095,
+      "tpTarget": 52.67719915552715,
+      "rr": 3,
+      "sym": "DRAMUSDT",
+      "zone": "LOWER",
+      "eval": {
+        "state": "EXPIRED",
+        "netR": 0,
+        "fillTime": null
+      },
+      "state": "EXPIRED"
+    },
+    "v40_DRAMUSDT_1793088000000": {
+      "type": "LONG",
+      "entryType": "LIMIT",
+      "sigT": 1793088000000,
+      "avgEntry": 47.97673,
+      "slTarget": 45.779735247997095,
+      "tpTarget": 54.56771425600873,
+      "rr": 3,
+      "sym": "DRAMUSDT",
+      "zone": "LOWER",
+      "eval": {
+        "state": "EXPIRED",
+        "netR": 0,
+        "fillTime": null
+      },
+      "state": "EXPIRED"
     }
   },
   "btcRegime": {
-    "price": 80839.9,
-    "ret30": -2.5019779435176526,
+    "price": 81220.3,
+    "ret30": -2.6847269982386956,
     "routerMode": "OFF"
   },
   "universe": [
@@ -5959,31 +6351,31 @@
     "ETHUSDT",
     "SOXLUSDT",
     "SNDKUSDT",
+    "SKHYNIXUSDT",
     "XAUUSDT",
     "ZECUSDT",
-    "SKHYNIXUSDT",
-    "CLUSDT",
     "SOLUSDT",
-    "KORUUSDT",
-    "XAGUSDT",
-    "QUSDT",
-    "SPCXUSDT",
-    "AINUSDT",
     "SKHYUSDT",
+    "KORUUSDT",
+    "CLUSDT",
+    "XAGUSDT",
     "BZUSDT",
     "MUUSDT",
+    "SPCXUSDT",
+    "EVAAUSDT",
+    "1000PEPEUSDT",
     "XRPUSDT",
-    "SOXSUSDT",
+    "SNXXUSDT",
     "HYPEUSDT",
     "NEARUSDT",
-    "SNXXUSDT",
-    "BULLAUSDT",
-    "ENAUSDT",
+    "SOXSUSDT",
     "BNBUSDT",
-    "1000PEPEUSDT",
-    "INTCUSDT",
+    "QUSDT",
+    "DOGEUSDT",
+    "ENAUSDT",
+    "AINUSDT",
+    "SAMSUNGUSDT",
     "MSTRUSDT",
-    "CRCLUSDT",
-    "DOGEUSDT"
+    "DRAMUSDT"
   ]
 }
