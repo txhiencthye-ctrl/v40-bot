@@ -1,0 +1,2279 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>V39.9.2-USD - Pure 4H (Score 105 · Risk 2% · SL 5.5% · Robust BTC Boundary)</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap');
+  :root { --bg-main:#0b0e11; --bg-card:#181a20; --border-color:#2b3139; --text-muted:#848e9c; --color-warn:#fcd535; }
+  body { background-color:var(--bg-main); color:#eaecef; font-family:'Inter',sans-serif; -webkit-tap-highlight-color:transparent; }
+  .font-mono { font-family:'JetBrains Mono',monospace; }
+  ::-webkit-scrollbar { width:4px; height:4px; }
+  ::-webkit-scrollbar-track { background:var(--bg-main); }
+  ::-webkit-scrollbar-thumb { background:var(--border-color); border-radius:10px; }
+  .hide-scroll::-webkit-scrollbar { display:none; }
+  .hide-scroll { -ms-overflow-style:none; scrollbar-width:none; }
+  @keyframes fadeinout { 0%{opacity:0;transform:translateY(20px);}10%{opacity:1;transform:translateY(0);}90%{opacity:1;transform:translateY(0);}100%{opacity:0;transform:translateY(-20px);} }
+  .toast { animation:fadeinout 3s forwards; }
+  .card-bg { background-color:var(--bg-card); border-color:var(--border-color); }
+  .glass-panel { background:rgba(24,26,32,0.7); backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px); }
+  .grade-badge { font-size:9px; font-weight:800; padding:1px 6px; border-radius:4px; letter-spacing:.5px; }
+  input[type="number"] { -moz-appearance:textfield; }
+  input[type="number"]::-webkit-outer-spin-button, input[type="number"]::-webkit-inner-spin-button { -webkit-appearance:none; margin:0; }
+  @keyframes pulse-ring { 0%{box-shadow:0 0 0 0 rgba(252,213,53,0.4);}70%{box-shadow:0 0 0 8px rgba(252,213,53,0);}100%{box-shadow:0 0 0 0 rgba(252,213,53,0);} }
+  .pending-pulse { animation:pulse-ring 2s infinite; }
+  @keyframes pulse-red { 0%{box-shadow:0 0 0 0 rgba(246,70,93,0.4);}70%{box-shadow:0 0 0 8px rgba(246,70,93,0);}100%{box-shadow:0 0 0 0 rgba(246,70,93,0);} }
+  .danger-pulse { animation:pulse-red 2s infinite; }
+  .console-output { font-family:'JetBrains Mono',monospace; font-size:11px; line-height:1.5; white-space:pre-wrap; word-break:break-all; }
+</style>
+</head>
+<body class="min-h-screen pb-24">
+
+<div id="money-modal" class="fixed inset-0 z-50 hidden bg-black/80 backdrop-blur-sm flex items-center justify-center p-3">
+    <div class="card-bg border rounded-xl shadow-2xl w-full max-w-md max-h-[90vh] flex flex-col overflow-hidden">
+        <div class="p-4 border-b border-[#2b3139] flex justify-between items-center bg-[#0b0e11]">
+            <h2 class="text-sm sm:text-base font-black text-[#eaecef] flex items-center gap-2">⚙️ CẤU HÌNH VỐN & RISK</h2>
+            <button onclick="closeMoneyModal()" class="text-[#848e9c] hover:text-white bg-[#2b3139] hover:bg-[#f6465d] rounded w-8 h-8 flex items-center justify-center">✕</button>
+        </div>
+        <div class="p-4 space-y-4 overflow-y-auto hide-scroll flex-1">
+            <div id="risk-warning" class="bg-[#f6465d]/10 border border-[#f6465d]/40 rounded-lg p-3 hidden">
+                <div class="text-[10px] text-[#f6465d] font-bold uppercase mb-1">⚠️ CẢNH BÁO RISK CAO</div>
+                <div class="text-[10px] text-[#eaecef] leading-relaxed">
+                    Risk ≥ 3% với x20: chuỗi <b>6 thua liên tiếp</b> = <span class="text-[#f6465d] font-bold">-18% vốn</span>, chuỗi 10 thua = <span class="text-[#f6465d] font-bold">-30% vốn</span>.
+                </div>
+            </div>
+
+            <div class="bg-[#0ecb81]/10 border border-[#0ecb81]/30 rounded-lg p-3">
+                <div class="text-[10px] text-[#0ecb81] font-bold uppercase mb-1">💡 Công Thức</div>
+                <div class="text-[10px] text-[#eaecef] leading-relaxed">
+                    <b>1R / Lệnh</b> = <code class="text-[#fcd535]">Vốn × Risk%</code><br>
+                    <b>Notional</b> = <code class="text-[#fcd535]">1R ÷ SL%</code><br>
+                    <b>Margin</b> = <code class="text-[#fcd535]">Notional ÷ Leverage</code>
+                </div>
+            </div>
+
+            <div>
+                <label class="text-[11px] text-[#848e9c] font-bold uppercase block mb-2">💰 Tổng Vốn (USDT)</label>
+                <input type="number" id="cfg-capital" value="1000" step="10" min="10" class="w-full bg-[#0b0e11] border border-[#2b3139] rounded-lg px-3 py-2.5 text-white text-sm font-mono font-bold outline-none focus:border-[#fcd535]">
+                <div class="flex gap-1 mt-1.5 flex-wrap">
+                    <button onclick="quickCapital(500)" class="text-[9px] bg-[#2b3139] text-[#848e9c] px-2 py-1 rounded hover:bg-[#848e9c]/20">$500</button>
+                    <button onclick="quickCapital(1000)" class="text-[9px] bg-[#2b3139] text-[#848e9c] px-2 py-1 rounded hover:bg-[#848e9c]/20">$1k</button>
+                    <button onclick="quickCapital(2000)" class="text-[9px] bg-[#2b3139] text-[#848e9c] px-2 py-1 rounded hover:bg-[#848e9c]/20">$2k</button>
+                    <button onclick="quickCapital(5000)" class="text-[9px] bg-[#2b3139] text-[#848e9c] px-2 py-1 rounded hover:bg-[#848e9c]/20">$5k</button>
+                </div>
+            </div>
+
+            <div>
+                <label class="text-[11px] text-[#848e9c] font-bold uppercase block mb-2">⚠️ Risk % / Lệnh</label>
+                <div class="flex items-center gap-2">
+                    <input type="range" id="cfg-risk-slider" min="0.25" max="10" step="0.25" value="2" class="flex-1 accent-[#fcd535]">
+                    <input type="number" id="cfg-risk" value="2" step="0.25" min="0.1" max="20" class="w-20 bg-[#0b0e11] border border-[#2b3139] rounded-lg px-2 py-2 text-white text-sm font-mono font-bold outline-none focus:border-[#fcd535] text-center">
+                    <span class="text-[#848e9c] text-sm font-bold">%</span>
+                </div>
+                <div class="flex gap-1 mt-1.5 flex-wrap">
+                    <button onclick="quickRisk(1)" class="text-[9px] bg-[#0ecb81]/20 text-[#0ecb81] px-2 py-1 rounded hover:bg-[#0ecb81]/30">1%</button>
+                    <button onclick="quickRisk(2)" class="text-[9px] bg-[#0ecb81]/20 text-[#0ecb81] px-2 py-1 rounded hover:bg-[#0ecb81]/30">2%</button>
+                    <button onclick="quickRisk(3)" class="text-[9px] bg-[#fcd535]/20 text-[#fcd535] px-2 py-1 rounded hover:bg-[#fcd535]/30">3%</button>
+                    <button onclick="quickRisk(3.5)" class="text-[9px] bg-[#fcd535]/20 text-[#fcd535] px-2 py-1 rounded hover:bg-[#fcd535]/30">3.5%</button>
+                    <button onclick="quickRisk(5)" class="text-[9px] bg-[#f6465d]/20 text-[#f6465d] px-2 py-1 rounded hover:bg-[#f6465d]/30">5%</button>
+                </div>
+            </div>
+
+            <div>
+                <label class="text-[11px] text-[#848e9c] font-bold uppercase block mb-2">🔧 Đòn Bẩy (x)</label>
+                <select id="cfg-leverage" class="w-full bg-[#0b0e11] border border-[#2b3139] rounded-lg px-3 py-2.5 text-white text-sm font-mono font-bold outline-none focus:border-[#fcd535]">
+                    <option value="5">x5</option><option value="10">x10</option><option value="15">x15</option>
+                    <option value="20" selected>x20</option><option value="25">x25</option><option value="30">x30</option>
+                    <option value="50">x50</option><option value="75">x75</option><option value="100">x100</option>
+                </select>
+            </div>
+
+            <div class="bg-[#a855f7]/10 border border-[#a855f7]/40 rounded-lg p-3 space-y-2">
+                <div class="text-[10px] text-[#a855f7] font-bold uppercase mb-1">🎯 V39.9.2 Optimized Filter</div>
+                <div class="flex justify-between items-center">
+                    <span class="text-[11px] text-[#eaecef]">Chỉ LONG (bỏ SHORT)</span>
+                    <input type="checkbox" id="cfg-long-only" class="w-4 h-4 accent-[#a855f7]">
+                </div>
+                <div class="flex justify-between items-center">
+                    <span class="text-[11px] text-[#eaecef]">Bắt buộc catalyst BTC</span>
+                    <input type="checkbox" id="cfg-require-catalyst" class="w-4 h-4 accent-[#a855f7]">
+                </div>
+                <div>
+                    <label class="text-[10px] text-[#848e9c] font-bold uppercase block mb-1">Min Score</label>
+                    <div class="flex gap-1">
+                        <button onclick="quickScore(95)" class="flex-1 text-[10px] bg-[#2b3139] text-[#848e9c] py-1.5 rounded">95</button>
+                        <button onclick="quickScore(100)" class="flex-1 text-[10px] bg-[#2b3139] text-[#848e9c] py-1.5 rounded">100</button>
+                        <button onclick="quickScore(105)" class="flex-1 text-[10px] bg-[#0ecb81]/20 text-[#0ecb81] py-1.5 rounded font-bold">105</button>
+                        <input type="number" id="cfg-min-score" value="105" min="50" max="150" class="w-16 bg-[#0b0e11] border border-[#2b3139] rounded px-2 py-1.5 text-white text-[11px] font-mono font-bold outline-none focus:border-[#a855f7] text-center">
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-[#0b0e11] border border-[#2b3139] rounded-lg p-3 space-y-2">
+                <div class="text-[10px] text-[#fcd535] font-bold uppercase mb-1">📊 Xem Trước</div>
+                <div class="flex justify-between text-xs"><span class="text-[#848e9c]">1R / Lệnh:</span><span id="cfg-one-r" class="text-[#f6465d] font-mono font-bold">$20.00</span></div>
+                <div class="grid grid-cols-2 gap-2 mt-2">
+                    <div class="bg-[#181a20] rounded p-2">
+                        <div class="text-[8px] text-[#848e9c] font-bold uppercase">SL 2.5%</div>
+                        <div class="text-[10px] text-[#fcd535] font-mono font-bold" id="cfg-notional-25">$800</div>
+                        <div class="text-[9px] text-[#0ecb81] font-mono" id="cfg-margin-25">$40</div>
+                    </div>
+                    <div class="bg-[#181a20] rounded p-2">
+                        <div class="text-[8px] text-[#848e9c] font-bold uppercase">SL 4%</div>
+                        <div class="text-[10px] text-[#fcd535] font-mono font-bold" id="cfg-notional-40">$500</div>
+                        <div class="text-[9px] text-[#0ecb81] font-mono" id="cfg-margin-40">$25</div>
+                    </div>
+                    <div class="bg-[#181a20] rounded p-2">
+                        <div class="text-[8px] text-[#848e9c] font-bold uppercase">SL 5.5%</div>
+                        <div class="text-[10px] text-[#fcd535] font-mono font-bold" id="cfg-notional-50">$364</div>
+                        <div class="text-[9px] text-[#0ecb81] font-mono" id="cfg-margin-50">$18</div>
+                    </div>
+                    <div class="bg-[#181a20] rounded p-2">
+                        <div class="text-[8px] text-[#848e9c] font-bold uppercase">DD (5 thua)</div>
+                        <div class="text-[10px] text-[#f6465d] font-mono font-bold" id="cfg-dd-7">-$100</div>
+                        <div class="text-[9px] text-[#848e9c] font-mono" id="cfg-dd-pct">-10.0%</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="p-4 border-t border-[#2b3139] bg-[#0b0e11] flex gap-2">
+            <button onclick="resetMoneyConfig()" class="bg-[#f6465d]/20 text-[#f6465d] hover:bg-[#f6465d]/30 px-4 py-2.5 rounded-lg text-xs font-black uppercase">↺ Reset</button>
+            <button onclick="closeMoneyModal()" class="flex-1 bg-[#0ecb81] hover:bg-[#0ecb81]/80 text-black py-2.5 rounded-lg text-xs font-black uppercase">✓ Lưu & Áp Dụng</button>
+        </div>
+    </div>
+</div>
+
+<div id="portfolio-modal" class="fixed inset-0 z-50 hidden bg-black/80 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4">
+    <div class="card-bg border rounded-xl shadow-2xl w-full max-w-3xl max-h-[85vh] flex flex-col overflow-hidden">
+        <div class="p-4 border-b border-[#2b3139] flex justify-between items-center bg-[#0b0e11]">
+            <h2 class="text-base sm:text-lg font-black text-[#eaecef] flex items-center gap-2">💼 PORTFOLIO</h2>
+            <button onclick="closePortfolio()" class="text-[#848e9c] hover:text-white bg-[#2b3139] hover:bg-[#f6465d] rounded w-8 h-8 flex items-center justify-center">✕</button>
+        </div>
+        <div class="p-3 sm:p-4 grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-3 border-b border-[#2b3139] bg-[#181a20] shrink-0">
+            <div class="bg-[#0b0e11] rounded-lg p-2 sm:p-3 flex flex-col items-center justify-center border border-[#2b3139]">
+                <div class="text-[9px] sm:text-[10px] text-[#848e9c] font-bold uppercase mb-1 text-center">Đang Chạy</div>
+                <div id="port-running-trades" class="text-lg sm:text-xl font-black text-[#3b82f6] font-mono">0</div>
+            </div>
+            <div class="bg-[#0b0e11] rounded-lg p-2 sm:p-3 flex flex-col items-center justify-center border border-[#2b3139]">
+                <div class="text-[9px] sm:text-[10px] text-[#848e9c] font-bold uppercase mb-1 text-center">Đã Đóng</div>
+                <div id="port-total-trades" class="text-lg sm:text-xl font-black text-white font-mono">0</div>
+            </div>
+            <div class="bg-[#0b0e11] rounded-lg p-2 sm:p-3 flex flex-col items-center justify-center border border-[#2b3139]">
+                <div class="text-[9px] sm:text-[10px] text-[#848e9c] font-bold uppercase mb-1 text-center">Winrate</div>
+                <div id="port-winrate" class="text-lg sm:text-xl font-black text-[#0ecb81] font-mono">0%</div>
+            </div>
+            <div class="bg-[#0b0e11] rounded-lg p-2 sm:p-3 flex flex-col items-center justify-center border border-[#2b3139]">
+                <div class="text-[9px] sm:text-[10px] text-[#848e9c] font-bold uppercase mb-1 text-center">PnL (USDT)</div>
+                <div id="port-pnl" class="text-lg sm:text-xl font-black text-[#0ecb81] font-mono">$0.00</div>
+            </div>
+        </div>
+        <div class="px-3 pt-2 pb-1 text-center text-[10px] text-[#848e9c] font-mono border-b border-[#2b3139] bg-[#0b0e11]" id="port-summary-line">--</div>
+        <div id="portfolio-list" class="flex-1 overflow-y-auto p-3 sm:p-4 space-y-3 hide-scroll bg-[#0b0e11]"></div>
+    </div>
+</div>
+
+<div id="stats-modal" class="fixed inset-0 z-50 hidden bg-black/80 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4">
+    <div class="card-bg border rounded-xl shadow-2xl w-full max-w-2xl max-h-[88vh] flex flex-col overflow-hidden">
+        <div class="p-4 border-b border-[#2b3139] flex justify-between items-center bg-[#0b0e11]">
+            <h2 class="text-base sm:text-lg font-black text-[#eaecef] flex items-center gap-2">🔍 KIỂM CHỨNG SỐ LIỆU</h2>
+            <button onclick="closeStatsModal()" class="text-[#848e9c] hover:text-white bg-[#2b3139] hover:bg-[#f6465d] rounded w-8 h-8 flex items-center justify-center">✕</button>
+        </div>
+        <div id="stats-modal-body" class="flex-1 overflow-y-auto p-4 space-y-4 hide-scroll bg-[#0b0e11]"></div>
+    </div>
+</div>
+
+<div id="bot-modal" class="fixed inset-0 z-50 hidden bg-black/80 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4">
+    <div class="card-bg border rounded-xl shadow-2xl w-full max-w-3xl max-h-[85vh] flex flex-col overflow-hidden">
+        <div class="p-4 border-b border-[#2b3139] flex justify-between items-center bg-[#0b0e11]">
+            <h2 class="text-base sm:text-lg font-black text-[#eaecef] flex items-center gap-2">🤖 BOT EXPORT</h2>
+            <button onclick="closeBotModal()" class="text-[#848e9c] hover:text-white bg-[#2b3139] hover:bg-[#f6465d] rounded w-8 h-8 flex items-center justify-center">✕</button>
+        </div>
+        <div class="p-3 border-b border-[#2b3139] bg-[#181a20] flex flex-wrap gap-2 items-center justify-between">
+            <div class="text-[10px] text-[#848e9c] font-mono">key: <span class="text-[#a855f7]">quant_v39_bot_signals</span></div>
+            <div class="flex gap-2">
+                <button onclick="copyBotJSON()" class="bg-[#fcd535] hover:bg-[#fcd535]/80 text-black px-3 py-1.5 rounded text-[11px] font-black uppercase">📋 Copy JSON</button>
+                <button onclick="downloadBotJSON()" class="bg-[#0ecb81] hover:bg-[#0ecb81]/80 text-black px-3 py-1.5 rounded text-[11px] font-black uppercase">⬇ Download</button>
+            </div>
+        </div>
+        <div class="flex-1 overflow-y-auto p-4 hide-scroll bg-[#0b0e11]">
+            <pre id="bot-json-view" class="text-[10px] font-mono text-[#0ecb81] whitespace-pre-wrap break-all"></pre>
+        </div>
+    </div>
+</div>
+
+<div id="console-modal" class="fixed inset-0 z-50 hidden bg-black/90 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4">
+    <div class="card-bg border border-[#a855f7]/40 rounded-xl shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col overflow-hidden">
+        <div class="p-4 border-b border-[#2b3139] flex justify-between items-center bg-[#0b0e11]">
+            <h2 class="text-base sm:text-lg font-black text-[#eaecef] flex items-center gap-2">🧪 CONSOLE TEST PANEL</h2>
+            <button onclick="closeConsoleModal()" class="text-[#848e9c] hover:text-white bg-[#2b3139] hover:bg-[#f6465d] rounded w-8 h-8 flex items-center justify-center">✕</button>
+        </div>
+        <div class="p-3 border-b border-[#2b3139] bg-[#181a20]">
+            <div class="text-[10px] text-[#848e9c] font-mono">Dán code JS. Access: <code class="text-[#fcd535]">globalLogs</code>, <code class="text-[#fcd535]">globalActionable</code>, <code class="text-[#fcd535]">V39_CONFIG</code>, <code class="text-[#fcd535]">computeDetailedStats</code>...</div>
+        </div>
+        <div class="p-3 bg-[#0b0e11] border-b border-[#2b3139]">
+            <textarea id="console-input" class="w-full h-32 bg-[#181a20] border border-[#2b3139] rounded-lg p-3 text-[11px] font-mono text-[#0ecb81] outline-none focus:border-[#a855f7]" spellcheck="false" placeholder="// Chạy script phân tích tại đây..."></textarea>
+            <div class="flex gap-2 mt-2 flex-wrap">
+                <button onclick="runConsoleTest()" class="bg-[#a855f7] hover:bg-[#a855f7]/80 text-white px-4 py-2 rounded text-[11px] font-black uppercase">▶ Run</button>
+                <button onclick="clearConsoleOutput()" class="bg-[#2b3139] hover:bg-[#848e9c]/20 text-[#848e9c] px-4 py-2 rounded text-[11px] font-black uppercase">🗑 Clear</button>
+                <button onclick="copyConsoleOutput()" class="bg-[#fcd535] hover:bg-[#fcd535]/80 text-black px-3 py-2 rounded text-[10px] font-bold uppercase ml-auto">📋 Copy</button>
+            </div>
+        </div>
+        <div class="flex-1 overflow-y-auto p-3 hide-scroll bg-[#0b0e11]">
+            <div class="text-[10px] text-[#848e9c] font-bold uppercase mb-2">Output:</div>
+            <div id="console-output" class="console-output text-[#0ecb81] bg-[#181a20] border border-[#2b3139] rounded-lg p-3 min-h-[100px]"></div>
+        </div>
+    </div>
+</div>
+
+<div class="sticky top-0 z-40 glass-panel border-b border-[#2b3139] px-4 py-3 flex justify-between items-center shadow-sm">
+    <div class="flex-1 min-w-0 pr-2">
+        <h1 class="text-base sm:text-lg font-black text-[#eaecef] tracking-tight flex items-center gap-2 truncate">
+            V39.9.2-USD 
+            <span class="bg-[#a855f7] text-white px-1.5 py-0.5 rounded text-[10px] uppercase tracking-wider font-extrabold">PURE 4H</span>
+            <span id="header-filter-badge" class="bg-[#0ecb81] text-black px-1.5 py-0.5 rounded text-[9px] font-bold"></span>
+        </h1>
+        <div id="scan-status" class="text-[10px] sm:text-[11px] text-[#848e9c] font-mono mt-0.5 flex items-center gap-1.5 truncate">Đang khởi động...</div>
+    </div>
+    <div class="flex items-center gap-1.5 shrink-0">
+        <button onclick="openMoneyModal()" id="btn-money" class="bg-[#2b3139] hover:bg-[#0ecb81]/20 text-[#0ecb81] border border-[#0ecb81]/30 px-2 sm:px-3 py-2 rounded text-[10px] sm:text-xs font-bold flex items-center gap-1">
+            <span id="header-money-label" class="font-mono">$1000</span>
+            <span class="text-[8px] opacity-60 font-mono" id="header-risk-label">2%</span>
+        </button>
+        <button onclick="openConsoleModal()" class="bg-[#a855f7] hover:bg-[#a855f7]/80 text-white p-2 rounded text-[10px] sm:text-xs font-bold flex items-center gap-1">
+            🧪
+        </button>
+        <button onclick="openBotModal()" class="bg-[#a855f7] hover:bg-[#a855f7]/80 text-white p-2 rounded text-[10px] sm:text-xs font-bold flex items-center gap-1">
+            🤖
+        </button>
+        <button onclick="openPortfolio()" class="bg-[#2b3139] hover:bg-[#848e9c]/20 text-[#eaecef] p-2 rounded text-[10px] sm:text-xs font-bold flex items-center gap-1">
+            💼
+        </button>
+        <button id="btn-refresh" onclick="forceFetchData()" class="bg-[#fcd535] hover:bg-[#fcd535]/80 text-black p-2 rounded active:scale-95 font-bold">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+        </button>
+    </div>
+</div>
+
+<div class="max-w-[1200px] mx-auto p-3 sm:p-6 space-y-4 sm:space-y-6 mt-2">
+
+  <div class="card-bg border p-4 rounded-xl shadow-md space-y-3">
+      <div class="flex justify-between items-center flex-wrap gap-2">
+          <div class="flex items-center gap-2">
+              <div class="w-2.5 h-2.5 rounded-full bg-[#0ecb81] animate-ping"></div>
+              <span class="text-xs sm:text-sm font-black text-[#eaecef] uppercase tracking-wider">🎯 BTC Vĩ Mô</span>
+          </div>
+          <div id="btc-zone-badge" class="px-2.5 py-1 rounded text-[10px] font-black uppercase font-mono tracking-wider bg-[#2b3139] text-[#fcd535]">Đang quét...</div>
+      </div>
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 pt-1 text-xs">
+          <div class="bg-[#0b0e11] border border-[#2b3139] rounded-lg p-2.5 flex flex-col">
+              <span class="text-[9px] text-[#848e9c] font-bold uppercase mb-1">BTC Giá</span>
+              <span id="btc-macro-pos" class="font-mono font-bold text-white text-sm">--</span>
+          </div>
+          <div class="bg-[#0b0e11] border border-[#2b3139] rounded-lg p-2.5 flex flex-col">
+              <span class="text-[9px] text-[#848e9c] font-bold uppercase mb-1">Bias L/S</span>
+              <span id="btc-macro-bias" class="font-mono font-bold text-[#fcd535] text-sm">--</span>
+          </div>
+          <div class="bg-[#0b0e11] border border-[#2b3139] rounded-lg p-2.5 flex flex-col">
+              <span class="text-[9px] text-[#848e9c] font-bold uppercase mb-1">Regime</span>
+              <span id="btc-macro-atr" class="font-mono font-bold text-[#0ecb81] text-sm">--</span>
+          </div>
+      </div>
+  </div>
+
+  <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+      <div class="card-bg border p-3 rounded-xl flex flex-col justify-center">
+          <span class="text-[10px] text-[#848e9c] font-bold uppercase mb-1">Top Khả Dụng</span>
+          <span id="stat-actionable" class="text-xl font-black text-[#fcd535] font-mono">0</span>
+          <span id="stat-rejected" class="text-[9px] text-[#848e9c] font-bold mt-0.5"></span>
+      </div>
+      <div class="card-bg border p-3 rounded-xl flex flex-col justify-center">
+          <span class="text-[10px] text-[#848e9c] font-bold uppercase mb-1">Winrate</span>
+          <span id="stat-winrate" class="text-xl font-black text-[#0ecb81] font-mono">0%</span>
+          <span id="stat-partial" class="text-[9px] text-[#848e9c] font-bold mt-0.5">0 W / 0 L</span>
+      </div>
+      <div class="card-bg border p-3 rounded-xl flex flex-col justify-center">
+          <span class="text-[10px] text-[#848e9c] font-bold uppercase mb-1">Kỳ Vọng / Lệnh</span>
+          <div class="flex items-baseline gap-1.5">
+              <span id="stat-expectancy" class="text-xl font-black text-[#eaecef] font-mono">0.00R</span>
+              <span id="stat-expectancy-usd" class="text-[11px] text-[#848e9c] font-bold font-mono">$0</span>
+          </div>
+      </div>
+      <div class="card-bg border p-3 rounded-xl flex flex-col justify-center cursor-pointer hover:border-[#fcd535]/50 transition-colors" onclick="openStatsModal()">
+          <div class="flex justify-between items-center mb-1">
+              <span class="text-[10px] text-[#848e9c] font-bold uppercase">NET (USDT)</span>
+              <span class="text-[9px] text-[#fcd535] font-bold">ⓘ</span>
+          </div>
+          <div class="flex items-baseline gap-1.5">
+              <span id="stat-pnl-usd" class="text-xl font-black text-[#eaecef] font-mono">$0</span>
+              <span id="stat-pnl" class="text-[11px] text-[#848e9c] font-bold font-mono">0.00R</span>
+          </div>
+          <span id="stat-count" class="text-[9px] text-[#848e9c] font-bold mt-0.5"></span>
+      </div>
+  </div>
+
+  <div class="flex rounded-lg bg-[#0b0e11] p-1 border border-[#2b3139]">
+      <button id="tab-btn-actionable" onclick="switchMainTab('actionable')" class="flex-1 py-2.5 text-xs sm:text-sm font-bold rounded-md transition-colors text-[#0b0e11] bg-[#fcd535] flex items-center justify-center gap-2">
+          🔥 TÍN HIỆU <span id="tab-badge-actionable" class="bg-black/20 text-black px-1.5 py-0.5 rounded text-[10px] hidden">0</span>
+      </button>
+      <button id="tab-btn-logs" onclick="switchMainTab('logs')" class="flex-1 py-2.5 text-xs sm:text-sm font-bold rounded-md transition-colors text-[#848e9c] hover:text-[#eaecef]">
+          📖 LỊCH SỬ
+      </button>
+  </div>
+
+  <div id="section-actionable" class="space-y-4 block">
+      <div class="flex gap-2 overflow-x-auto pb-1 hide-scroll">
+          <button onclick="setFilter('type', 'ALL')" id="btn-type-ALL" class="tf-tab text-[11px] sm:text-xs px-4 py-1.5 rounded font-bold border border-[#2b3139] whitespace-nowrap shrink-0">Tất Cả</button>
+          <button onclick="setFilter('type', 'LONG')" id="btn-type-LONG" class="tf-tab text-[11px] sm:text-xs px-4 py-1.5 rounded font-bold border border-[#2b3139] whitespace-nowrap text-[#0ecb81] shrink-0">Chỉ LONG</button>
+          <button onclick="setFilter('type', 'SHORT')" id="btn-type-SHORT" class="tf-tab text-[11px] sm:text-xs px-4 py-1.5 rounded font-bold border border-[#2b3139] whitespace-nowrap text-[#f6465d] shrink-0">Chỉ SHORT</button>
+          <button onclick="toggleMinGrade()" id="btn-grade-toggle" class="tf-tab text-[11px] sm:text-xs px-4 py-1.5 rounded font-bold border border-[#2b3139] whitespace-nowrap text-[#fcd535] shrink-0">⭐ Chỉ A+/A</button>
+      </div>
+      <div id="actionable-board" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+  </div>
+
+  <div id="section-logs" class="space-y-4 hidden">
+      <div class="flex justify-between items-center bg-[#181a20] border border-[#2b3139] rounded-lg p-3 gap-2 flex-wrap">
+          <div class="text-[11px] sm:text-xs text-[#eaecef] font-bold">Nhật ký (240 ngày)</div>
+          <button onclick="openBotModal()" class="text-[10px] bg-[#a855f7] hover:bg-[#a855f7]/80 text-white px-3 py-1.5 rounded font-black uppercase">🤖 Export (<span id="bot-count-inline">0</span>)</button>
+      </div>
+      <div class="flex gap-2 overflow-x-auto pb-1 hide-scroll">
+          <button onclick="setFilter('logCat', 'PENDING')" id="btn-logCat-PENDING" class="tf-tab text-[11px] sm:text-xs px-4 py-1.5 rounded font-bold border border-[#2b3139] whitespace-nowrap text-[#fcd535] shrink-0">⏳ Chờ <span id="cnt-PENDING" class="ml-1 opacity-70"></span></button>
+          <button onclick="setFilter('logCat', 'TRACKED')" id="btn-logCat-TRACKED" class="tf-tab text-[11px] sm:text-xs px-4 py-1.5 rounded font-bold border border-[#2b3139] whitespace-nowrap shrink-0">🚀 Mở <span id="cnt-TRACKED" class="ml-1 opacity-70"></span></button>
+          <button onclick="setFilter('logCat', 'CLOSED')" id="btn-logCat-CLOSED" class="tf-tab text-[11px] sm:text-xs px-4 py-1.5 rounded font-bold border border-[#2b3139] whitespace-nowrap shrink-0">✅ Đóng <span id="cnt-CLOSED" class="ml-1 opacity-70"></span></button>
+      </div>
+      <div id="logs-description" class="text-[10px] text-[#848e9c] px-1"></div>
+      <div id="tracked-board" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+  </div>
+</div>
+
+<script>
+const DB_NAME = 'QuantV39_DB';
+const DB_VERSION = 1;
+let dbInstance = null;
+
+function initDB() {
+    return new Promise((resolve, reject) => {
+        const req = indexedDB.open(DB_NAME, DB_VERSION);
+        req.onupgradeneeded = e => {
+            const db = e.target.result;
+            if (!db.objectStoreNames.contains('klines')) {
+                db.createObjectStore('klines', { keyPath: 'id' });
+            }
+        };
+        req.onsuccess = e => { dbInstance = e.target.result; resolve(); };
+        req.onerror = e => reject(e.target.error);
+    });
+}
+function getKlinesDB(id) {
+    return new Promise(resolve => {
+        if (!dbInstance) return resolve(null);
+        const tx = dbInstance.transaction('klines', 'readonly');
+        const req = tx.objectStore('klines').get(id);
+        req.onsuccess = () => resolve(req.result ? req.result.data : null);
+        req.onerror = () => resolve(null);
+    });
+}
+function saveKlinesDB(id, data) {
+    return new Promise(resolve => {
+        if (!dbInstance) return resolve();
+        const tx = dbInstance.transaction('klines', 'readwrite');
+        tx.objectStore('klines').put({ id, data, t: Date.now() });
+        tx.oncomplete = () => resolve();
+    });
+}
+
+const DEFAULT_V39_CONFIG = {
+    LONG_ONLY: true,
+    REQUIRE_CATALYST: true,
+    MIN_SCORE: 105,
+};
+let V39_CONFIG = (function() {
+    try {
+        const saved = JSON.parse(localStorage.getItem('v39_config') || '{}');
+        return { ...DEFAULT_V39_CONFIG, ...saved };
+    } catch(e) {
+        return { ...DEFAULT_V39_CONFIG };
+    }
+})();
+
+const RISK_BUDGET = {
+    HARD_CAP_R_PER_DIRECTION: 6.0,
+    MIN_MARGIN_PER_ORDER: 5,
+};
+
+const FEE_MAKER = 0.0002, FEE_TAKER = 0.0005;
+const SLIP_SL = 0.0020;
+const FILL_PIERCE = 0.0003;
+const FUNDING_PER_8H = 0.0001;
+
+const TEST_PERIOD_MS = 240 * 24 * 60 * 60 * 1000;
+const RS_PERCENTILE = 0.15;
+const DAILY_CAP = 10;
+
+const TP_MIN_R = 1.0, TP_MAX_R = 2.5;
+const MAX_COST_R = 0.15;
+const MAX_FLOAT_R = 1.0, MIN_FLOAT_R = -0.3, MAX_DIST_ATR = 2.5;
+const MIN_SL_PCT = 0.025;
+const MAX_SL_PCT = 0.055;
+
+const BOT_STORAGE_KEY = 'quant_v39_bot_signals';
+const BOT_SCHEMA_VERSION = '1.9.2';
+const MONEY_STORAGE_KEY = 'quant_v39_money_v5';
+
+const sysConfig = { 
+    tf:'4h', wait:12, hold:24, htfEma:200, lbMult:1.0, 
+    ms:14400000, slBufAtr:0.55 
+};
+
+let moneyConfig = (function() {
+    const raw = localStorage.getItem(MONEY_STORAGE_KEY);
+    if (raw) {
+        try {
+            const c = JSON.parse(raw);
+            return {
+                capital: c.capital || 1000,
+                riskPct: typeof c.riskPct === 'number' ? c.riskPct : 0.02,
+                leverage: c.leverage || 20,
+            };
+        } catch(e) {}
+    }
+    return { capital: 1000, riskPct: 0.02, leverage: 20 };
+})();
+
+let coinSetCache = null;
+let latestSymbolsMap = new Map();
+const NON_COIN = new Set(['TSLAUSDT','AAOIUSDT','SPCXUSDT','NVDAUSDT','AAPLUSDT','MSTRUSDT','COINUSDT','HOODUSDT','CRCLUSDT','QQQUSDT','SPYUSDT','XAUUSDT','XAGUSDT']);
+
+const FALLBACK_UNIVERSE = new Set([
+  'BTCUSDT', 'ETHUSDT', 'BNBUSDT', 'SOLUSDT', 'XRPUSDT', 'ADAUSDT', 'DOGEUSDT', 'AVAXUSDT', 'LINKUSDT',
+  'DOTUSDT', 'MATICUSDT', 'UNIUSDT', 'LTCUSDT', 'BCHUSDT', 'ATOMUSDT', 'XMRUSDT', 'ETCUSDT', 'XLMUSDT',
+  'FILUSDT', 'ICPUSDT', 'VETUSDT', 'NEARUSDT', 'ARBUSDT', 'OPUSDT', 'INJUSDT', 'RNDRUSDT', 'APTUSDT',
+  'SUIUSDT', 'LDOUSDT', 'GRTUSDT', 'SNXUSDT', 'AAVEUSDT', 'MKRUSDT', 'QNTUSDT', 'ALGOUSDT', 'STXUSDT'
+]);
+
+const calcEMA=(c,p)=>{let e=[];let s=0;let k=2/(p+1);for(let i=0;i<c.length;i++){s+=c[i];e[i]=i<p?s/(i+1):(c[i]*k+e[i-1]*(1-k));}return e;};
+const calcATR=(k,p)=>{let a=new Array(k.length).fill(0);if(k.length<=p)return a;let t=[0];for(let i=1;i<k.length;i++){t.push(Math.max(k[i].h-k[i].l,Math.abs(k[i].h-k[i-1].c),Math.abs(k[i].l-k[i-1].c)));}let s=0;for(let i=1;i<=p;i++)s+=t[i];a[p]=s/p;for(let i=p+1;i<k.length;i++)a[i]=(a[i-1]*(p-1)+t[i])/p;return a;};
+const formatPrice=(p)=>{if(!p && p!==0)return'--';let ap=Math.abs(p);if(ap<0.001)return p.toFixed(6);if(ap<1)return p.toFixed(4);if(ap<100)return p.toFixed(3);return p.toFixed(2);};
+const formatTime=(ms)=>{if(!ms)return'--';let d=new Date(ms);return`${d.getDate().toString().padStart(2,'0')}/${(d.getMonth()+1).toString().padStart(2,'0')} ${d.getHours().toString().padStart(2,'0')}:${d.getMinutes().toString().padStart(2,'0')}`;};
+const formatCountdown=(ms)=>{if(ms<=0)return'Đã hết';let h=Math.floor(ms/3600000);let m=Math.floor((ms%3600000)/60000);if(h>=24){let d=Math.floor(h/24);let hr=h%24;return`${d}d ${hr}h`;}return`${h}h ${m}m`;};
+
+const CLOSED_STATES = ['SL', 'TP', 'TIME'];
+const ACTIVE_STATES = ['RUNNING'];
+
+function get1R_USDT() { return moneyConfig.capital * moneyConfig.riskPct; }
+function rToUSDT(netR) { return netR * get1R_USDT(); }
+function sizeByRisk(slPct) {
+    const oneR = get1R_USDT();
+    const safeSl = Math.max(slPct, 0.001);
+    const notional = oneR / safeSl;
+    const margin = notional / moneyConfig.leverage;
+    return { oneR, notional, margin, qty: notional };
+}
+function formatUSDT(v) {
+    if (v === undefined || v === null || isNaN(v)) return '$0.00';
+    const sign = v > 0 ? '+' : (v < 0 ? '-' : '');
+    const abs = Math.abs(v);
+    if (abs >= 1000) return `${sign}$${abs.toFixed(0)}`;
+    return `${sign}$${abs.toFixed(2)}`;
+}
+
+function computeRobustBoundary(closed, i) {
+    const windowSlice = closed.slice(i - 50, i);
+    const sortedH = windowSlice.map(k => k.h).sort((a,b) => a - b);
+    const sortedL = windowSlice.map(k => k.l).sort((a,b) => a - b);
+    const p95Idx = Math.min(49, Math.floor(50 * 0.95));
+    const p05Idx = Math.max(0, Math.floor(50 * 0.05));
+    const high50 = sortedH[p95Idx];
+    const low50 = sortedL[p05Idx];
+    return { high50, low50 };
+}
+
+function evaluateBoundaryRejection(closed, i) {
+    let lowerWickCount = 0;
+    let upperWickCount = 0;
+    const startIdx = Math.max(0, i - 2);
+    for (let idx = startIdx; idx <= i; idx++) {
+        const bar = closed[idx];
+        const body = Math.abs(bar.c - bar.o);
+        const lowerWick = Math.min(bar.o, bar.c) - bar.l;
+        const upperWick = bar.h - Math.max(bar.o, bar.c);
+        if (lowerWick > body * 1.2) lowerWickCount++;
+        if (upperWick > body * 1.2) upperWickCount++;
+    }
+    return { hasLowerRejection: lowerWickCount >= 1, hasUpperRejection: upperWickCount >= 1 };
+}
+
+function computeBtcMacroAt(closed, i, ema20, ema50) {
+    const { high50, low50 } = computeRobustBoundary(closed, i);
+    const curP = closed[i].c;
+    const rangeSpan = high50 - low50;
+    const posInChannel = rangeSpan > 0 ? (curP - low50) / rangeSpan : 0.5;
+
+    const slope50 = (curP - closed[i - 50].c) / closed[i - 50].c;
+    const isStrongUptrend = (slope50 > 0.08) || (ema20[i] > ema50[i] * 1.02);
+    const isStrongDowntrend = (slope50 < -0.08) || (ema20[i] < ema50[i] * 0.98);
+
+    const { hasLowerRejection, hasUpperRejection } = evaluateBoundaryRejection(closed, i);
+
+    let zone = 'MID_RANGE', bias = 'NEUTRAL', scoreMod = 0;
+    let desc = 'BTC cân bằng';
+
+    const isUpperTouch = (posInChannel >= 0.85) || (curP >= high50 * 0.995);
+    const isLowerTouch = (posInChannel <= 0.15) || (curP <= low50 * 1.005);
+
+    if (isUpperTouch && !isStrongUptrend) {
+        zone = 'UPPER_BOUNDARY'; bias = 'CHẶN LONG'; scoreMod = -15;
+        desc = hasUpperRejection ? '⚠️ BTC chạm BIÊN TRÊN (Có Wick)' : '⚠️ BTC chạm BIÊN TRÊN';
+    } else if (isLowerTouch && !isStrongDowntrend) {
+        zone = 'LOWER_BOUNDARY'; bias = 'ƯU TIÊN LONG'; scoreMod = hasLowerRejection ? +20 : +15;
+        desc = hasLowerRejection ? '🎯 BTC test BIÊN DƯỚI (Xác Nhận Wick)' : '🎯 BTC test BIÊN DƯỚI';
+    } else if (isStrongUptrend) {
+        zone = 'BULLISH_CHANNEL'; bias = 'THUẬN TĂNG'; scoreMod = +8;
+        desc = '🚀 BTC Uptrend mạnh';
+    } else if (isStrongDowntrend) {
+        zone = 'BEARISH_CHANNEL'; bias = 'THUẬN GIẢM'; scoreMod = -8;
+        desc = '📉 BTC Downtrend mạnh';
+    } else if (ema20[i] > ema50[i] && curP > ema50[i]) {
+        zone = 'BULLISH_CHANNEL'; bias = 'THUẬN TĂNG'; scoreMod = +5;
+        desc = '🚀 BTC tăng trung hạn';
+    } else if (ema20[i] < ema50[i] && curP < ema50[i]) {
+        zone = 'BEARISH_CHANNEL'; bias = 'THUẬN GIẢM'; scoreMod = -5;
+        desc = '📉 BTC giảm trung hạn';
+    }
+
+    return { zone, bias, scoreMod, desc, curP, high50, low50, posInChannel, slope50, isStrongUptrend, isStrongDowntrend };
+}
+
+function analyzeBtcMacroBoundary(btcKlines) {
+    if(!btcKlines || btcKlines.length < 50) return { zone: 'NEUTRAL', bias: 'SIDEWAY', scoreMod: 0, desc: 'Đang tải...' };
+    const closed = btcKlines[btcKlines.length-1].t + 14400000 > Date.now() ? btcKlines.slice(0,-1) : btcKlines;
+    const len = closed.length - 1;
+    const cArr = closed.map(k=>k.c);
+    const ema20 = calcEMA(cArr, 20);
+    const ema50 = calcEMA(cArr, 50);
+    return computeBtcMacroAt(closed, len, ema20, ema50);
+}
+
+function buildBtcMacroSeries(btcKlines) {
+    const closed = btcKlines[btcKlines.length-1].t + 14400000 > Date.now() ? btcKlines.slice(0,-1) : btcKlines;
+    const cArr = closed.map(k=>k.c);
+    const ema20 = calcEMA(cArr, 20);
+    const ema50 = calcEMA(cArr, 50);
+    const map = new Map();
+    for (let i = 50; i < closed.length; i++) {
+        const macro = computeBtcMacroAt(closed, i, ema20, ema50);
+        map.set(closed[i].t, macro);
+    }
+    return map;
+}
+
+function buildBtcRegimeSeries(btcKlines) {
+    const closed = btcKlines[btcKlines.length-1].t + 14400000 > Date.now() ? btcKlines.slice(0,-1) : btcKlines;
+    const atr = calcATR(closed, 14), map = new Map();
+    for (let i = 42; i < closed.length; i++) {
+        const c = closed[i].c;
+        const ret3d = (c - closed[i-18].c) / closed[i-18].c;
+        const ret7d = (c - closed[i-42].c) / closed[i-42].c;
+        const atrPct = atr[i] / c;
+        let r = { regime:'NORMAL', blockLongs:false, blockShorts:false, desc:'⚖️ Cân bằng' };
+        if (ret3d < -0.06 && atrPct > 0.025) r = { regime:'CRASH', blockLongs:true, blockShorts:false, desc:`🚨 CRASH 3d ${(ret3d*100).toFixed(1)}%` };
+        else if (ret3d > 0.06 && atrPct > 0.025) r = { regime:'MELT_UP', blockLongs:false, blockShorts:true, desc:`🚀 MELT-UP +${(ret3d*100).toFixed(1)}%` };
+        else if (ret7d < -0.10) r = { regime:'BEAR_TREND', blockLongs:true, blockShorts:false, desc:`📉 BEAR 7d ${(ret7d*100).toFixed(1)}%` };
+        else if (ret7d > 0.10) r = { regime:'BULL_TREND', blockLongs:false, blockShorts:true, desc:`📈 BULL 7d +${(ret7d*100).toFixed(1)}%` };
+        map.set(closed[i].t, r);
+    }
+    return map;
+}
+
+function getBtcMarketRegime(btcKlines) {
+    if (!btcKlines || btcKlines.length < 50)
+        return { regime: 'UNKNOWN', blockLongs: false, blockShorts: false, desc: 'Chưa đủ dữ liệu' };
+    const m = buildBtcRegimeSeries(btcKlines);
+    const closed = btcKlines[btcKlines.length-1].t + 14400000 > Date.now() ? btcKlines.slice(0,-1) : btcKlines;
+    const lastT = closed[closed.length-1].t;
+    return m.get(lastT) || { regime:'NORMAL', blockLongs:false, blockShorts:false, desc:'⚖️ Cân bằng' };
+}
+
+function buildDailyTrendMap(klines4H) {
+    const map = new Map();
+    if (!klines4H || klines4H.length < 60) return map;
+    const dayBars = new Map();
+    for (const k of klines4H) {
+        const dayStart = Math.floor(k.t / 86400000) * 86400000;
+        if (!dayBars.has(dayStart) || k.t > dayBars.get(dayStart).lastBarT) {
+            dayBars.set(dayStart, { t: dayStart, lastBarT: k.t, c: k.c });
+        }
+    }
+    const dailyBars = Array.from(dayBars.values()).sort((a,b) => a.t - b.t);
+    if (dailyBars.length < 55) return map;
+    const closes = dailyBars.map(b => b.c);
+    const ema20 = calcEMA(closes, 20);
+    const ema50 = calcEMA(closes, 50);
+    for (let i = 50; i < dailyBars.length; i++) {
+        const isUp = ema20[i] > ema50[i] && closes[i] > ema20[i];
+        const isDown = ema20[i] < ema50[i] && closes[i] < ema20[i];
+        map.set(dailyBars[i].t, isUp ? 'UP' : (isDown ? 'DOWN' : 'NEUTRAL'));
+    }
+    return map;
+}
+
+function getDailyTrendAt(dailyTrendMap, ts) {
+    if (!dailyTrendMap || dailyTrendMap.size === 0) return 'NEUTRAL';
+    let best = null, bestT = -1;
+    for (const [t, trend] of dailyTrendMap.entries()) {
+        if (t + 86400000 <= ts && t > bestT) { bestT = t; best = trend; }
+    }
+    return best || 'NEUTRAL';
+}
+
+function saveMoneyConfig() {
+    const cap = parseFloat(document.getElementById('cfg-capital').value) || 1000;
+    const riskPct = (parseFloat(document.getElementById('cfg-risk').value) || 2) / 100;
+    const lev = parseFloat(document.getElementById('cfg-leverage').value) || 20;
+    moneyConfig = { capital: cap, riskPct: Math.max(0.001, Math.min(0.20, riskPct)), leverage: lev };
+    localStorage.setItem(MONEY_STORAGE_KEY, JSON.stringify(moneyConfig));
+    updateMoneyDisplays();
+    if (globalLogs.length) renderDashboards(globalActionable, globalLogs);
+    renderPortfolio();
+    if (globalPending.length) rebuildBotExport();
+    showToast('✓ Đã lưu: $' + cap + ' · ' + (moneyConfig.riskPct*100).toFixed(2) + '% risk');
+}
+function quickCapital(v) { document.getElementById('cfg-capital').value = v; updateMoneyPreview(); }
+function quickRisk(v) {
+    document.getElementById('cfg-risk').value = v;
+    document.getElementById('cfg-risk-slider').value = v;
+    updateMoneyPreview();
+}
+function quickScore(v) { 
+    document.getElementById('cfg-min-score').value = v; 
+}
+function resetMoneyConfig() {
+    if (!confirm("Reset về mặc định V39.9.2: $1000 · 2% risk · x20 · LONG-only · Score≥105?")) return;
+    moneyConfig = { capital: 1000, riskPct: 0.02, leverage: 20 };
+    V39_CONFIG = { ...DEFAULT_V39_CONFIG };
+    localStorage.setItem(MONEY_STORAGE_KEY, JSON.stringify(moneyConfig));
+    localStorage.setItem('v39_config', JSON.stringify(V39_CONFIG));
+    updateMoneyDisplays();
+    loadV39ConfigUI();
+    updateFilterBadge();
+    if (globalLogs.length) renderDashboards(globalActionable, globalLogs);
+    renderPortfolio();
+    showToast('↺ Đã reset V39.9.2 mặc định');
+}
+function updateMoneyPreview() {
+    const cap = parseFloat(document.getElementById('cfg-capital').value) || 1000;
+    const riskPct = (parseFloat(document.getElementById('cfg-risk').value) || 2) / 100;
+    const lev = parseFloat(document.getElementById('cfg-leverage').value) || 20;
+    const oneR = cap * riskPct;
+    document.getElementById('cfg-one-r').innerText = `$${oneR.toFixed(2)}`;
+    [2.5, 4.0, 5.5].forEach(slPct => {
+        const notional = oneR / (slPct / 100);
+        const margin = notional / lev;
+        const key = slPct.toString().replace('.', '');
+        const nEl = document.getElementById('cfg-notional-' + key);
+        const mEl = document.getElementById('cfg-margin-' + key);
+        if (nEl) nEl.innerText = `$${notional.toFixed(0)}`;
+        if (mEl) mEl.innerText = `$${margin.toFixed(2)}`;
+    });
+    document.getElementById('cfg-dd-7').innerText = `-$${(oneR * 5).toFixed(0)}`;
+    document.getElementById('cfg-dd-pct').innerText = `-${((oneR * 5 / cap) * 100).toFixed(1)}%`;
+    const warnEl = document.getElementById('risk-warning');
+    if (warnEl) {
+        if (riskPct >= 0.035) warnEl.classList.remove('hidden');
+        else warnEl.classList.add('hidden');
+    }
+}
+function updateMoneyDisplays() {
+    document.getElementById('header-money-label').innerText = `$${moneyConfig.capital.toFixed(0)}`;
+    document.getElementById('header-risk-label').innerText = `${(moneyConfig.riskPct*100).toFixed(1)}%`;
+    document.getElementById('cfg-capital').value = moneyConfig.capital;
+    document.getElementById('cfg-risk').value = (moneyConfig.riskPct * 100).toFixed(2);
+    document.getElementById('cfg-risk-slider').value = Math.min(10, moneyConfig.riskPct * 100);
+    document.getElementById('cfg-leverage').value = moneyConfig.leverage;
+    updateMoneyPreview();
+}
+
+function loadV39ConfigUI() {
+    document.getElementById('cfg-long-only').checked = V39_CONFIG.LONG_ONLY;
+    document.getElementById('cfg-require-catalyst').checked = V39_CONFIG.REQUIRE_CATALYST;
+    document.getElementById('cfg-min-score').value = V39_CONFIG.MIN_SCORE;
+}
+function saveV39ConfigUI() {
+    V39_CONFIG.LONG_ONLY = document.getElementById('cfg-long-only').checked;
+    V39_CONFIG.REQUIRE_CATALYST = document.getElementById('cfg-require-catalyst').checked;
+    V39_CONFIG.MIN_SCORE = parseInt(document.getElementById('cfg-min-score').value) || 105;
+    localStorage.setItem('v39_config', JSON.stringify(V39_CONFIG));
+    updateFilterBadge();
+    showToast('✓ V39 Config đã lưu — cần Refresh để áp dụng');
+}
+function updateFilterBadge() {
+    const badge = document.getElementById('header-filter-badge');
+    if (!badge) return;
+    const parts = [];
+    if (V39_CONFIG.LONG_ONLY) parts.push('LONG');
+    if (V39_CONFIG.REQUIRE_CATALYST) parts.push('CAT');
+    parts.push('≥' + V39_CONFIG.MIN_SCORE);
+    badge.innerText = parts.join('·');
+}
+
+function openMoneyModal() { 
+    updateMoneyDisplays(); 
+    loadV39ConfigUI();
+    document.getElementById('money-modal').classList.remove('hidden'); 
+}
+function closeMoneyModal() { 
+    saveMoneyConfig();
+    saveV39ConfigUI();
+    document.getElementById('money-modal').classList.add('hidden'); 
+}
+function openStatsModal() { renderStatsModal(); document.getElementById('stats-modal').classList.remove('hidden'); }
+function closeStatsModal() { document.getElementById('stats-modal').classList.add('hidden'); }
+function openBotModal() { rebuildBotExport(); renderBotModal(); document.getElementById('bot-modal').classList.remove('hidden'); }
+function closeBotModal() { document.getElementById('bot-modal').classList.add('hidden'); }
+
+function openConsoleModal() { document.getElementById('console-modal').classList.remove('hidden'); }
+function closeConsoleModal() { document.getElementById('console-modal').classList.add('hidden'); }
+function clearConsoleOutput() { document.getElementById('console-output').innerHTML = ''; }
+
+async function runConsoleTest() {
+    const code = document.getElementById('console-input').value;
+    const outEl = document.getElementById('console-output');
+    if (!code.trim()) { outEl.innerHTML = '<span class="text-[#f6465d]">⚠️ Chưa có code</span>'; return; }
+    
+    const captured = [];
+    const fakeConsole = {
+        log: (...args) => captured.push(args.map(a => typeof a === 'object' ? JSON.stringify(a, null, 2) : String(a)).join(' ')),
+        error: (...args) => captured.push('[ERROR] ' + args.join(' ')),
+        warn: (...args) => captured.push('[WARN] ' + args.join(' ')),
+        info: (...args) => captured.push('[INFO] ' + args.join(' ')),
+    };
+    
+    let returnValue;
+    try {
+        const AsyncFunction = Object.getPrototypeOf(async function(){}).constructor;
+        const fn = new AsyncFunction(
+            'console', 'globalLogs', 'globalActionable', 'globalPending',
+            'computeDetailedStats', 'moneyConfig', 'sysConfig', 'V39_CONFIG',
+            'get1R_USDT', 'formatUSDT', 'rToUSDT', 'TP_MIN_R', 'TP_MAX_R',
+            'MIN_TRADE_SCORE', 'ACTIVE_STATES', 'CLOSED_STATES', 'latestSymbolsMap',
+            'dbInstance', 'FALLBACK_UNIVERSE', 'DB_NAME', 'getKlinesDB', 'saveKlinesDB',
+            code
+        );
+        returnValue = await fn(
+            fakeConsole, globalLogs, globalActionable, globalPending,
+            computeDetailedStats, moneyConfig, sysConfig, V39_CONFIG,
+            get1R_USDT, formatUSDT, rToUSDT, TP_MIN_R, TP_MAX_R,
+            105, ACTIVE_STATES, CLOSED_STATES, latestSymbolsMap,
+            dbInstance, FALLBACK_UNIVERSE, DB_NAME, getKlinesDB, saveKlinesDB
+        );
+    } catch (e) {
+        captured.push('[THROW] ' + e.message + '\n' + (e.stack || ''));
+    }
+    
+    let output = captured.join('\n');
+    if (returnValue !== undefined) {
+        output += '\n--- RETURN ---\n' + (typeof returnValue === 'object' ? JSON.stringify(returnValue, null, 2) : String(returnValue));
+    }
+    outEl.innerHTML = output || '<span class="text-[#848e9c]">(không có output)</span>';
+}
+
+function copyConsoleOutput() {
+    const txt = document.getElementById('console-output').innerText;
+    navigator.clipboard.writeText(txt).then(() => showToast('📋 Đã copy output!'));
+}
+
+function getStateLabel(state) {
+    const map = { 'WAITING':'Chờ Khớp','RUNNING':'Đang Chạy','SL':'Dính SL','TP':'Chốt TP','TIME':'Hết Hạn','EXPIRED':'Hết Chờ','MISSED':'Bỏ Lỡ' };
+    return map[state] || state;
+}
+function getStateStyle(state) {
+    if (state === 'WAITING') return 'text-[#fcd535] border-[#fcd535]/30 bg-[#fcd535]/10';
+    if (state === 'RUNNING') return 'text-[#3b82f6] border-[#3b82f6]/30 bg-[#3b82f6]/10 animate-pulse';
+    if (state === 'SL') return 'text-[#f6465d] border-[#f6465d]/30 bg-[#f6465d]/10';
+    if (state === 'TP') return 'text-[#0ecb81] border-[#0ecb81]/30 bg-[#0ecb81]/10';
+    if (state === 'TIME') return 'text-[#a855f7] border-[#a855f7]/30 bg-[#a855f7]/10';
+    return 'text-[#848e9c] border-[#2b3139] bg-[#181a20]';
+}
+function getDistanceInfo(s) {
+    const risk = Math.abs(s.avgEntry - s.slTarget);
+    if (risk === 0 || !s.curPrice) return { floatR: 0, distPct: 0, color: 'text-[#848e9c]', label: '--' };
+    const isL = s.type === 'LONG';
+    const floatDist = isL ? (s.curPrice - s.avgEntry) : (s.avgEntry - s.curPrice);
+    const floatR = floatDist / risk;
+    const distPct = ((s.curPrice - s.avgEntry) / s.avgEntry) * 100;
+    let color = 'text-[#848e9c]';
+    if (Math.abs(floatR) < 0.5) color = 'text-[#0ecb81]';
+    else if (Math.abs(floatR) < 1.0) color = 'text-[#fcd535]';
+    else color = 'text-[#f6465d]';
+    const sign = distPct > 0 ? '+' : '';
+    return { floatR, distPct, color, label: `${sign}${distPct.toFixed(1)}%  (${floatR > 0 ? '+' : ''}${floatR.toFixed(1)}R)` };
+}
+function calcRankScore(r) {
+    let score = 0;
+    score += (r.score - 60) * 0.5;
+    score += Math.min(4, r.rr || 0) * 3;
+    const age = r.age || 0;
+    if (age <= 2) score += 5; else if (age <= 5) score += 2; else if (age >= 20) score -= 8;
+    const risk = Math.abs(r.avgEntry - r.slTarget);
+    if (risk > 0 && r.curPrice) {
+        const isL = r.type === 'LONG';
+        const floatDist = isL ? (r.curPrice - r.avgEntry) : (r.avgEntry - r.curPrice);
+        const floatR = floatDist / risk;
+        if (floatR > 1.5) score -= 15;
+        if (floatR < -0.3) score -= 3;
+    }
+    if (r.avgEntry > 0) {
+        const riskPct = (risk / r.avgEntry) * 100;
+        if (riskPct > 5.5) score -= 8;
+        if (riskPct < 3) score += 3;
+    }
+    return score;
+}
+function getQualityGrade(score) {
+    if (score >= 25) return { grade: 'A+', color: 'bg-gradient-to-r from-yellow-400 to-amber-500 text-black' };
+    if (score >= 17) return { grade: 'A',  color: 'bg-[#0ecb81] text-black' };
+    if (score >= 10) return { grade: 'B',  color: 'bg-[#3b82f6] text-white' };
+    if (score >= 4)  return { grade: 'C',  color: 'bg-[#848e9c] text-white' };
+    return { grade: 'D', color: 'bg-[#2b3139] text-[#848e9c]' };
+}
+function buildBtcSeries(btc) {
+    const closed = btc[btc.length-1].t + 14400000 > Date.now() ? btc.slice(0,-1) : btc;
+    const c = closed.map(k=>k.c), e50 = calcEMA(c,50), e200 = calcEMA(c,200), m = new Map();
+    for(let i=18; i<closed.length; i++){
+        const ret3d = (c[i]-c[i-18])/c[i-18];
+        m.set(closed[i].t, { ret3d, isDown: c[i] < e50[i] || e50[i] < e200[i] || ret3d < -0.015, isUp: c[i] > e50[i] && e50[i] > e200[i] && ret3d > 0.015 });
+    }
+    return m;
+}
+
+function buildTrade(isL, entry, sl, impExt){
+  const risk = Math.abs(entry - sl), slPct = risk / entry;
+  if(slPct > MAX_SL_PCT + 0.005) return { reason: 'sl_out_of_bounds' };
+  if(slPct < MIN_SL_PCT - 0.005) return { reason: 'sl_out_of_bounds' };
+  if((FEE_TAKER + SLIP_SL) / slPct > MAX_COST_R) return { reason: 'cost_too_high' };
+  const room = (isL ? impExt - entry : entry - impExt) / risk;
+  if (room < TP_MIN_R) return { reason: 'room_too_small' };
+  const rr = Math.min(TP_MAX_R, Math.max(TP_MIN_R, room));
+  return { sl, tp: isL ? entry + rr * risk : entry - rr * risk, rr, risk, slPct };
+}
+
+function computeDirectionalSizing(sig, allActiveSignals) {
+    if (!sig || !allActiveSignals) return null;
+    if (sig._sizingFrozen && sig.frozenSize) {
+        return {
+            frozen: true, oneR: sig.frozenSize.oneR, notional: sig.frozenSize.notional, margin: sig.frozenSize.margin,
+            count: sig.directionalCount || 1,
+            directionalRUsed: 0, directionalRMax: RISK_BUDGET.HARD_CAP_R_PER_DIRECTION,
+            reject: false, siblings: [],
+        };
+    }
+    const directional = allActiveSignals.filter(x => x.sym !== sig.sym && x.type === sig.type && x.key !== sig.key);
+    const usedR = directional.length;
+    const slPct = Math.abs(sig.avgEntry - sig.slTarget) / sig.avgEntry;
+    const sizing = sizeByRisk(slPct);
+    const hardCapHit = usedR >= RISK_BUDGET.HARD_CAP_R_PER_DIRECTION;
+    return {
+        frozen: false,
+        count: directional.length + 1,
+        oneR: sizing.oneR,
+        notional: parseFloat(sizing.notional.toFixed(2)),
+        margin: parseFloat(sizing.margin.toFixed(2)),
+        directionalRUsed: usedR,
+        directionalRMax: RISK_BUDGET.HARD_CAP_R_PER_DIRECTION,
+        reject: hardCapHit,
+        rejectReason: hardCapHit ? 'hard_cap' : null,
+        siblings: directional.map(x => x.sym.replace('USDT','')),
+    };
+}
+
+function freezeSizingAtEntry(order) {
+    if (order._sizingFrozen) return order;
+    const slPct = Math.abs(order.avgEntry - order.slTarget) / order.avgEntry;
+    const sz = sizeByRisk(slPct);
+    order._sizingFrozen = true;
+    order.frozenSize = { oneR: sz.oneR, notional: sz.notional, margin: sz.margin, at: Date.now() };
+    order.directionalCount = order.directionalSizing?.count || 1;
+    return order;
+}
+
+function findPullback(klines, i, atrArr, ema20, ema50, ema200, btcInfo, rsInfo, sysConfig, type, dTrend, btcMacroZone){
+  const isL = type === 'LONG'; const atr = atrArr[i];
+  const curClose = klines[i].c;
+  if (isL) {
+      if (curClose < ema50[i]) return null;
+      if (ema200[i] && curClose < ema200[i]) return null;
+      if (curClose - ema50[i] > 2.5 * atr) return null;
+      if (ema20[i] < ema50[i] && curClose < ema20[i]) return null;
+  } else {
+      if (curClose > ema50[i]) return null;
+      if (ema200[i] && curClose > ema200[i]) return null;
+      if (ema50[i] - curClose > 2.5 * atr) return null;
+      if (ema20[i] > ema50[i] && curClose > ema20[i]) return null;
+  }
+  if (btcMacroZone === 'UPPER_BOUNDARY' && isL) return null;
+  if (btcMacroZone === 'LOWER_BOUNDARY' && !isL) return null;
+
+  const coinRet3d = (klines[i].c - klines[i-18].c) / klines[i-18].c;
+  let score = 75; let tags = ['Trend PB 4H'];
+  if (isL) {
+      if (btcInfo.isDown) { if (coinRet3d < rsInfo.topThresh) return null; score = 95; tags.push('Ngược Bão BTC'); }
+      else { if (coinRet3d < 0) return null; score = 65; tags.push('Thuận Sóng'); }
+  } else {
+      if (btcInfo.isUp) { if (coinRet3d > rsInfo.botThresh) return null; score = 95; tags.push('Sập Trước BTC'); }
+      else { if (coinRet3d > 0) return null; score = 65; tags.push('Thuận Sóng'); }
+  }
+  if (dTrend === 'DOWN' && isL) return null;
+  if (dTrend === 'UP' && !isL) return null;
+  if (dTrend !== 'NEUTRAL') tags.push(`D ${dTrend}`);
+  if (btcMacroZone === 'LOWER_BOUNDARY' && isL) tags.push('⭐ BTC Biên Dưới');
+  if (btcMacroZone === 'UPPER_BOUNDARY' && !isL) tags.push('⭐ BTC Biên Trên');
+
+  let pIdx = i, pv = isL ? -Infinity : Infinity;
+  for(let j = i - 20; j <= i; j++){ if(isL ? klines[j].h > pv : klines[j].l < pv){ pv = isL ? klines[j].h : klines[j].l; pIdx = j; } }
+  if(pIdx > i - 2 || pIdx < i - 12) return null;
+  let sv = isL ? Infinity : -Infinity;
+  for(let j = Math.max(0, pIdx - 20); j < pIdx; j++){ if(isL ? klines[j].l < sv : klines[j].h > sv) sv = isL ? klines[j].l : klines[j].h; }
+  const leg = Math.abs(pv - sv);
+  if(leg < 3.0 * atr) return null;
+  const fib = r => isL ? pv - r * leg : pv + r * leg;
+  let avgEntry = (fib(0.5) + fib(0.618)) / 2;
+  
+  let sl = isL ? sv - sysConfig.slBufAtr * atr : sv + sysConfig.slBufAtr * atr;
+  let slPctOrig = Math.abs(avgEntry - sl) / avgEntry;
+  if (slPctOrig > MAX_SL_PCT) { avgEntry = isL ? sl / (1 - MAX_SL_PCT) : sl / (1 + MAX_SL_PCT); }
+  else if (slPctOrig < MIN_SL_PCT) { avgEntry = isL ? sl / (1 - MIN_SL_PCT) : sl / (1 + MIN_SL_PCT); }
+  if(Math.abs(avgEntry - ema50[i]) > 3.0 * atr) return null;
+  for(let m = pIdx + 1; m <= i; m++){
+    if(isL && klines[m].l <= avgEntry) return null;
+    if(!isL && klines[m].h >= avgEntry) return null;
+  }
+  const tr = buildTrade(isL, avgEntry, sl, pv);
+  if(tr.reason) return null;
+  if (slPctOrig > MAX_SL_PCT) tags.push('Ép SL 5.5%');
+  if (slPctOrig < MIN_SL_PCT) tags.push('Nới SL 2.5%');
+  tags.push('SV20');
+
+  if (V39_CONFIG.LONG_ONLY && type === 'SHORT') return null;
+  if (V39_CONFIG.REQUIRE_CATALYST) {
+      const hasCatalyst = tags.includes('Ngược Bão BTC') || tags.includes('Sập Trước BTC');
+      if (!hasCatalyst) return null;
+  }
+
+  return { type, strat: 'PB', sigT: klines[i].t, etEdge: avgEntry, avgEntry, slTarget: tr.sl, tpTarget: tr.tp, rr: tr.rr, atr, score, tags, impExt: pv };
+}
+
+function evaluateEngine(klines, i, s, cfg){
+  const isL = s.type === 'LONG';
+  const limit = s.avgEntry, slOrig = s.slTarget, tp = s.tpTarget;
+  const risk = Math.abs(limit - slOrig);
+  if (risk === 0) return { state: 'WAITING', netR: 0, grossR: 0, entryFeeR: 0, exitFeeAndSlipR: 0, totalFeeR: 0, fundingR: 0, isComplete: false, nLegs: 0, fillTime: null, closeTime: null, mfe: 0, barsHeld: 0 };
+
+  const last = klines.length - 1;
+  const canFill  = (k) => isL ? k.l <= limit * (1 - FILL_PIERCE) : k.h >= limit * (1 + FILL_PIERCE);
+  const canTP    = (k) => isL ? k.h >= tp * (1 + FILL_PIERCE) : k.l <= tp * (1 - FILL_PIERCE);
+  const touchTP  = (k) => isL ? k.h >= tp : k.l <= tp;
+  const hitSL    = (k) => isL ? k.l <= slOrig : k.h >= slOrig;
+
+  let fillJ = -1, fillTime = null;
+  const waitEnd = Math.min(i + cfg.wait, last);
+  for (let j = i + 1; j <= waitEnd; j++){
+    const k = klines[j];
+    if (touchTP(k) && !canFill(k)) return { state: 'MISSED', netR: 0, grossR: 0, entryFeeR: 0, exitFeeAndSlipR: 0, totalFeeR: 0, fundingR: 0, isComplete: true, fillTime: null, closeTime: null, mfe: 0, nLegs: 0, fillIdx: -1, barsHeld: 0 };
+    if (canFill(k)) { fillJ = j; fillTime = k.t; break; }
+  }
+  if (fillJ === -1) {
+    const willComplete = (i + cfg.wait) <= last;
+    return { state: willComplete ? 'EXPIRED' : 'WAITING', netR: 0, grossR: 0, entryFeeR: 0, exitFeeAndSlipR: 0, totalFeeR: 0, fundingR: 0, isComplete: willComplete, fillTime: null, closeTime: null, mfe: 0, nLegs: 0, fillIdx: -1, barsHeld: 0 };
+  }
+
+  const prevBar = klines[fillJ - 1];
+  const rg = cfg.regSeries?.get(prevBar?.t);
+  if (rg && ((isL && rg.blockLongs) || (!isL && rg.blockShorts))) {
+      return { state: 'EXPIRED', netR: 0, grossR: 0, entryFeeR: 0, exitFeeAndSlipR: 0, totalFeeR: 0, fundingR: 0, isComplete: true, nLegs: 0, fillTime: null, closeTime: null, mfe: 0, barsHeld: 0, fillIdx: -1, regimeRejected: true };
+  }
+
+  const entryFeeR = (limit * FEE_MAKER) / risk;
+  let exitFeeAndSlipR = 0;
+  let finalState = 'RUNNING', closeIdx = -1, mfe = 0;
+  let grossR = 0;
+
+  for (let j = fillJ; j <= last; j++){
+    const k = klines[j];
+    if (!k) continue;
+    mfe = Math.max(mfe, (isL ? (k.h - limit) : (limit - k.l)) / risk);
+
+    if (hitSL(k)) {
+      exitFeeAndSlipR += (slOrig * (FEE_TAKER + SLIP_SL)) / risk;
+      grossR += isL ? (slOrig - limit) / risk : (limit - slOrig) / risk;
+      finalState = 'SL'; closeIdx = j; break;
+    }
+
+    if (j > fillJ && canTP(k)) {
+      exitFeeAndSlipR += (tp * FEE_MAKER) / risk;
+      grossR += isL ? (tp - limit) / risk : (limit - tp) / risk;
+      finalState = 'TP'; closeIdx = j; break;
+    }
+
+    const barsHeldNow = j - fillJ;
+    if (barsHeldNow >= cfg.hold) {
+      const exitPrice = k.c;
+      exitFeeAndSlipR += (exitPrice * FEE_TAKER) / risk;
+      grossR += isL ? (exitPrice - limit) / risk : (limit - exitPrice) / risk;
+      finalState = 'TIME'; closeIdx = j; break;
+    }
+  }
+
+  const isComplete = (finalState === 'SL' || finalState === 'TP' || finalState === 'TIME');
+  const barsHeld = closeIdx >= 0 ? closeIdx - fillJ : (last - fillJ);
+  const fundingR = isComplete ? (barsHeld / 6) * 3 * FUNDING_PER_8H * (limit / risk) : 0;
+  const totalFeeR = entryFeeR + exitFeeAndSlipR;
+  const netR = grossR - totalFeeR - fundingR;
+  const closeTime = (closeIdx >= 0 && klines[closeIdx]) ? klines[closeIdx].t : null;
+  return { state: finalState, netR, grossR, entryFeeR, exitFeeAndSlipR, totalFeeR, fundingR, isComplete, fillTime, closeTime, fillIdx: fillJ, closeIdx, mfe, nLegs: 1, closeBars: barsHeld, barsHeld };
+}
+
+let currentFetchCtrl = null;
+let globalActionable = [], globalLogs = [], globalPending = [];
+let globalRejectedCount = 0;
+let globalRejectedByHardCap = 0;
+let globalBtcRegime = { regime: 'UNKNOWN', blockLongs: false, blockShorts: false, desc: '--' };
+let appState = JSON.parse(localStorage.getItem('quant_v39_state')) || { type: 'ALL', logCat: 'PENDING', minGrade: false };
+if(!['PENDING', 'TRACKED', 'CLOSED'].includes(appState.logCat)) appState.logCat = 'PENDING';
+function saveState() { localStorage.setItem('quant_v39_state', JSON.stringify(appState)); }
+function toggleMinGrade() { appState.minGrade = !appState.minGrade; saveState(); updateUIChips(); renderDashboards(globalActionable, globalLogs); }
+function setFilter(key, val) { appState[key] = val; saveState(); updateUIChips(); renderDashboards(globalActionable, globalLogs); }
+
+function showToast(msg) {
+    const t = document.createElement('div');
+    t.className = 'fixed top-16 right-4 bg-[#fcd535] text-black px-4 py-2 text-xs font-bold rounded shadow-lg z-[60] toast';
+    t.innerText = msg; document.body.appendChild(t); setTimeout(() => t.remove(), 3000);
+}
+function copyToClipboard(txt) { navigator.clipboard.writeText(txt).then(() => { showToast('🎯 Đã Copy!'); }); }
+
+let currentMainTab = 'actionable';
+function switchMainTab(tabName) {
+    currentMainTab = tabName;
+    const btnAct = document.getElementById('tab-btn-actionable'), btnLog = document.getElementById('tab-btn-logs');
+    const secAct = document.getElementById('section-actionable'), secLog = document.getElementById('section-logs');
+    if(tabName === 'actionable') {
+        btnAct.className = "flex-1 py-2.5 text-xs sm:text-sm font-bold rounded-md transition-colors text-[#0b0e11] bg-[#fcd535] flex items-center justify-center gap-2";
+        btnLog.className = "flex-1 py-2.5 text-xs sm:text-sm font-bold rounded-md transition-colors text-[#848e9c] hover:text-[#eaecef]";
+        secAct.style.display = 'block'; secLog.style.display = 'none';
+    } else {
+        btnLog.className = "flex-1 py-2.5 text-xs sm:text-sm font-bold rounded-md transition-colors text-[#0b0e11] bg-[#fcd535] flex items-center justify-center gap-2";
+        btnAct.className = "flex-1 py-2.5 text-xs sm:text-sm font-bold rounded-md transition-colors text-[#848e9c] hover:text-[#eaecef]";
+        secAct.style.display = 'none'; secLog.style.display = 'block';
+    }
+}
+function updateUIChips() {
+    const cats = { 'type': ['ALL', 'LONG', 'SHORT'], 'logCat': ['PENDING', 'TRACKED', 'CLOSED'] };
+    for (const [key, values] of Object.entries(cats)) {
+        values.forEach(val => {
+            const el = document.getElementById(`btn-${key}-${val}`);
+            if(el) {
+                if(appState[key] === val) { el.classList.add('bg-[#eaecef]', 'text-[#0b0e11]'); el.classList.remove('text-[#848e9c]', 'text-[#0ecb81]', 'text-[#f6465d]', 'text-[#fcd535]', 'border-[#2b3139]'); }
+                else { el.classList.remove('bg-[#eaecef]', 'text-[#0b0e11]'); el.classList.add('border-[#2b3139]'); if(val==='LONG') el.classList.add('text-[#0ecb81]'); else if(val==='SHORT') el.classList.add('text-[#f6465d]'); else if(val==='PENDING') el.classList.add('text-[#fcd535]'); else el.classList.add('text-[#848e9c]'); }
+            }
+        });
+    }
+    const gradeBtn = document.getElementById('btn-grade-toggle');
+    if (gradeBtn) {
+        if (appState.minGrade) { gradeBtn.classList.add('bg-[#fcd535]', 'text-black'); gradeBtn.classList.remove('text-[#fcd535]'); }
+        else { gradeBtn.classList.remove('bg-[#fcd535]', 'text-black'); gradeBtn.classList.add('text-[#fcd535]'); }
+    }
+}
+
+function getEnteredKeys() { try { return JSON.parse(localStorage.getItem('quant_v39_entered') || '[]'); } catch { return []; } }
+
+function toggleEnteredOrder(key) {
+    let entered = getEnteredKeys();
+    let myTrades = JSON.parse(localStorage.getItem('quant_v39_my_trades') || '{}');
+    if (entered.includes(key)) {
+        entered = entered.filter(k => k !== key);
+        delete myTrades[key];
+    } else {
+        entered.push(key);
+        let order = globalActionable.find(o => o.key === key) || globalLogs.find(o => o.key === key) || globalPending.find(o => o.key === key);
+        if (order) {
+            const copy = JSON.parse(JSON.stringify(order));
+            freezeSizingAtEntry(copy);
+            myTrades[key] = copy;
+        }
+    }
+    localStorage.setItem('quant_v39_entered', JSON.stringify(entered));
+    localStorage.setItem('quant_v39_my_trades', JSON.stringify(myTrades));
+    renderDashboards(globalActionable, globalLogs);
+    renderPortfolio();
+}
+function forceEnterRejected(key) {
+    if (!confirm("⚠️ Đã vượt hard cap 6R/hướng.\n\nVẫn muốn vào? (Khuyến nghị KHÔNG)")) return;
+    toggleEnteredOrder(key);
+}
+function removePortfolioItem(key) {
+    if(!confirm("Xóa lệnh này khỏi Portfolio?")) return;
+    let myTrades = JSON.parse(localStorage.getItem('quant_v39_my_trades') || '{}');
+    delete myTrades[key];
+    localStorage.setItem('quant_v39_my_trades', JSON.stringify(myTrades));
+    let entered = getEnteredKeys();
+    entered = entered.filter(k => k !== key);
+    localStorage.setItem('quant_v39_entered', JSON.stringify(entered));
+    renderDashboards(globalActionable, globalLogs);
+    renderPortfolio();
+}
+function openPortfolio() { renderPortfolio(); document.getElementById('portfolio-modal').classList.remove('hidden'); }
+function closePortfolio() { document.getElementById('portfolio-modal').classList.add('hidden'); }
+
+function calculateLiveStats(s, evalRes) {
+    const isL = s.type === 'LONG';
+    const risk = Math.abs(s.avgEntry - s.slTarget);
+    if (risk === 0) return { netR: 0, usd: 0 };
+    if (evalRes && evalRes.isComplete) {
+        const netR = evalRes.netR || 0;
+        return { netR, usd: rToUSDT(netR) };
+    }
+    const state = evalRes?.state || 'WAITING';
+    if (state === 'RUNNING') {
+        const curP = s.curPrice || s.avgEntry;
+        const entryFeeR = (s.avgEntry * FEE_MAKER) / risk;
+        const floatDist = isL ? (curP - s.avgEntry) : (s.avgEntry - curP);
+        const floatR = floatDist / risk;
+        const barsHeldNow = evalRes.barsHeld || Math.max(0, Math.floor((Date.now() - s.sigT) / sysConfig.ms));
+        const fundingEstR = (barsHeldNow / 6) * 3 * FUNDING_PER_8H * (s.avgEntry / risk);
+        const totalR = floatR - entryFeeR - fundingEstR;
+        return { netR: totalR, usd: rToUSDT(totalR) };
+    }
+    return { netR: 0, usd: 0 };
+}
+function getLiveRDisplay(s, evalRes) {
+    const stats = calculateLiveStats(s, evalRes);
+    if (evalRes && evalRes.isComplete) {
+        return { txtR: `${stats.netR > 0 ? '+' : ''}${stats.netR.toFixed(2)}R`, txtUSD: formatUSDT(stats.usd), color: stats.netR > 0 ? 'text-[#0ecb81]' : (stats.netR < 0 ? 'text-[#f6465d]' : 'text-[#848e9c]') };
+    }
+    const state = evalRes?.state || 'WAITING';
+    if (state === 'RUNNING') {
+        return { txtR: `~ ${stats.netR > 0 ? '+' : ''}${stats.netR.toFixed(2)}R`, txtUSD: formatUSDT(stats.usd), color: stats.netR > 0 ? 'text-[#0ecb81]' : (stats.netR < 0 ? 'text-[#f6465d]' : 'text-[#848e9c]') };
+    }
+    return { txtR: '', txtUSD: '', color: 'text-[#848e9c]' };
+}
+
+function renderPortfolioCard(s) {
+    const isL = s.type === 'LONG';
+    const colorTxt = isL ? 'text-[#0ecb81]' : 'text-[#f6465d]';
+    const bgType = isL ? 'bg-[#0ecb81]/10 text-[#0ecb81]' : 'bg-[#f6465d]/10 text-[#f6465d]';
+    const activeEval = s.final || s.eval || {};
+    const stText = getStateLabel(activeEval.state || 'WAITING');
+    const stColor = getStateStyle(activeEval.state || 'WAITING');
+    const rDisplay = getLiveRDisplay(s, activeEval);
+    const frozen = s.frozenSize;
+    return `
+    <div class="card-bg border p-3.5 rounded-xl flex justify-between items-center relative group hover:border-[#848e9c] transition-colors shadow-sm">
+        <div class="flex flex-col gap-1.5 z-10 w-full pr-24">
+            <div class="flex items-center gap-2 flex-wrap">
+                <span class="font-black text-[15px] ${colorTxt}">${s.sym.replace('USDT','')}</span>
+                <span class="text-[9px] font-bold ${bgType}">${s.type}</span>
+                <span class="${stColor} px-1.5 py-0.5 rounded text-[9px] font-bold border">${stText}</span>
+                ${frozen ? `<span class="text-[9px] font-bold bg-[#0ecb81]/20 text-[#0ecb81] px-1.5 py-0.5 rounded border border-[#0ecb81]/30">FROZEN</span>` : ''}
+            </div>
+            <div class="text-[11px] text-[#848e9c] font-mono mt-1">E: <span class="text-white">${formatPrice(s.avgEntry)}</span> | SL: <span class="text-[#f6465d]">${formatPrice(s.slTarget)}</span> | TP: <span class="text-[#0ecb81]">${formatPrice(s.tpTarget)}</span></div>
+            <div class="text-[10px] text-[#848e9c] font-mono">Live: <span class="text-[#fcd535] font-bold">${formatPrice(s.curPrice)}</span></div>
+            <div class="text-[9px] text-[#848e9c] font-bold uppercase mt-1 flex items-center gap-3">
+                <span>TẠO: ${formatTime(s.sigT)}</span>
+                ${activeEval.closeTime ? `<span>ĐÓNG: ${formatTime(activeEval.closeTime)}</span>` : ''}
+            </div>
+        </div>
+        <div class="absolute right-3.5 top-1/2 -translate-y-1/2 flex flex-col items-end gap-1.5 z-20">
+            ${rDisplay.txtR ? `
+            <div class="flex flex-col items-end bg-[#0b0e11] px-2 py-1 rounded border border-[#2b3139] shadow-sm">
+                <div class="${rDisplay.color} font-bold text-[13px] font-mono leading-none mb-0.5">${rDisplay.txtR}</div>
+                <div class="${rDisplay.color} font-bold text-[10px] font-mono opacity-80 leading-none">${rDisplay.txtUSD}</div>
+            </div>` : ''}
+            <button onclick="removePortfolioItem('${s.key}')" class="text-[#848e9c] hover:text-[#f6465d] p-1.5 rounded hover:bg-[#2b3139] bg-[#0b0e11] border border-[#2b3139] transition-colors">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+            </button>
+        </div>
+    </div>`;
+}
+
+function renderPortfolio() {
+    let myTrades = JSON.parse(localStorage.getItem('quant_v39_my_trades') || '{}');
+    let tradesArr = Object.values(myTrades).map(saved => {
+        let live = globalLogs.find(o => o.key === saved.key) || globalActionable.find(o => o.key === saved.key) || globalPending.find(o => o.key === saved.key);
+        let obj = live ? { ...saved, ...live } : { ...saved };
+        if (saved._sizingFrozen) { obj._sizingFrozen = true; obj.frozenSize = saved.frozenSize; }
+        if (latestSymbolsMap.has(obj.sym)) obj.curPrice = latestSymbolsMap.get(obj.sym);
+        return obj;
+    });
+    tradesArr.sort((a, b) => b.sigT - a.sigT);
+    let totalClosed = 0, totalRunning = 0, fullWins = 0, losses = 0;
+    let realizedR = 0, realizedUSD = 0, floatingR = 0, floatingUSD = 0, html = '';
+    tradesArr.forEach(s => {
+        const evalR = s.final || s.eval || {};
+        const st = evalR.state || 'WAITING';
+        const stats = calculateLiveStats(s, evalR);
+        if (CLOSED_STATES.includes(st)) {
+            totalClosed++;
+            realizedR += stats.netR; realizedUSD += stats.usd;
+            if (stats.netR > 0) fullWins++; else if (stats.netR < 0) losses++;
+        } else if (ACTIVE_STATES.includes(st)) {
+            totalRunning++; floatingR += stats.netR; floatingUSD += stats.usd;
+        }
+        html += renderPortfolioCard(s);
+    });
+    const winrate = (fullWins + losses) > 0 ? ((fullWins / (fullWins + losses)) * 100).toFixed(1) + '%' : '0%';
+    const totalUSD = realizedUSD + floatingUSD;
+    document.getElementById('port-running-trades').innerText = totalRunning;
+    document.getElementById('port-total-trades').innerText = totalClosed;
+    document.getElementById('port-winrate').innerText = winrate;
+    const pnlEl = document.getElementById('port-pnl');
+    pnlEl.innerText = formatUSDT(totalUSD);
+    pnlEl.className = `text-lg sm:text-xl font-black font-mono ${totalUSD > 0 ? 'text-[#0ecb81]' : (totalUSD < 0 ? 'text-[#f6465d]' : 'text-[#eaecef]')}`;
+    const roi = ((totalUSD / moneyConfig.capital) * 100).toFixed(1);
+    document.getElementById('port-summary-line').innerHTML = `Đã chốt: <span class="${realizedR>0?'text-[#0ecb81]':realizedR<0?'text-[#f6465d]':'text-[#eaecef]'} font-bold">${formatUSDT(realizedUSD)}</span> | Thả nổi: <span class="${floatingR>0?'text-[#0ecb81]':floatingR<0?'text-[#f6465d]':'text-[#eaecef]'} font-bold">${formatUSDT(floatingUSD)}</span> | ROI: <span class="${totalUSD>0?'text-[#0ecb81]':'text-[#848e9c]'} font-bold">${roi>0?'+':''}${roi}%</span>`;
+    if(tradesArr.length === 0) html = `<div class="text-center py-16 flex flex-col items-center justify-center border border-[#2b3139] border-dashed rounded-xl bg-[#181a20]"><span class="text-4xl mb-3 opacity-30 text-[#848e9c]">💼</span><span class="text-[#848e9c] font-bold text-sm">Portfolio trống</span></div>`;
+    document.getElementById('portfolio-list').innerHTML = html;
+}
+
+function buildBotSignal(s) {
+    const isL = s.type === 'LONG';
+    const risk = Math.abs(s.avgEntry - s.slTarget);
+    const slPct = risk / s.avgEntry;
+    const expireT = s.sigT + sysConfig.wait * sysConfig.ms;
+    const timeLeftMs = expireT - Date.now();
+    let sizing = s.frozenSize || sizeByRisk(slPct);
+    const effMargin = sizing.margin;
+    const notional = sizing.notional;
+    const qty = notional / s.avgEntry;
+    const riskUSDT = sizing.oneR;
+    const curP = s.curPrice || s.avgEntry;
+    const floatDist = isL ? (curP - s.avgEntry) : (s.avgEntry - curP);
+    const floatR = risk > 0 ? floatDist / risk : 0;
+    const distATR = Math.abs(curP - s.avgEntry) / (s.atr || 1);
+    return {
+        schema: BOT_SCHEMA_VERSION, key: s.key, symbol: s.sym, side: s.type,
+        state: s.final?.state || s.eval?.state || 'WAITING',
+        entry: parseFloat(s.avgEntry.toFixed(8)), entryType: 'LIMIT',
+        sl: parseFloat(s.slTarget.toFixed(8)),
+        tp: parseFloat(s.tpTarget.toFixed(8)),
+        rr: parseFloat((s.rr || 0).toFixed(3)), slPct: parseFloat((slPct * 100).toFixed(4)),
+        riskUSDT: parseFloat(riskUSDT.toFixed(4)),
+        qty: parseFloat(qty.toFixed(8)),
+        notional: parseFloat(notional.toFixed(4)),
+        leverage: moneyConfig.leverage,
+        margin: parseFloat(effMargin.toFixed(4)),
+        sizingMethod: s.frozenSize ? 'frozen' : 'sizeByRisk',
+        sizingFrozen: !!s.frozenSize,
+        riskPct: moneyConfig.riskPct,
+        sigT: s.sigT, expireT: expireT, timeLeftMs: timeLeftMs, waitBars: sysConfig.wait,
+        holdBars: sysConfig.hold,
+        curPrice: parseFloat(curP.toFixed(8)),
+        distancePct: parseFloat(((curP - s.avgEntry) / s.avgEntry * 100).toFixed(3)),
+        floatR: parseFloat(floatR.toFixed(3)), distATR: parseFloat(distATR.toFixed(3)),
+        strat: s.strat, score: s.score, tags: s.tags,
+        atr: parseFloat((s.atr || 0).toFixed(8)), isL,
+        fillPierce: FILL_PIERCE, slSlippage: SLIP_SL,
+        impExt: s.impExt ? parseFloat(s.impExt.toFixed(8)) : null,
+    };
+}
+
+function rebuildBotExport() {
+    const activePending = globalPending.filter(s => (s.sigT + sysConfig.wait * sysConfig.ms) > Date.now());
+    const runningTrades = globalLogs.filter(l => {
+        const st = l.final?.state || l.eval?.state || 'WAITING';
+        return st === 'RUNNING';
+    });
+    const combined = [...activePending, ...runningTrades];
+    const uniqueMap = new Map();
+    combined.forEach(s => uniqueMap.set(s.key, s));
+    const finalExport = Array.from(uniqueMap.values());
+    finalExport.forEach(s => { if (!s.directionalSizing) s.directionalSizing = computeDirectionalSizing(s, finalExport); });
+    const payload = {
+        schema: BOT_SCHEMA_VERSION, generatedAt: Date.now(), count: finalExport.length,
+        version: 'V39.9.2',
+        v39Config: { ...V39_CONFIG },
+        moneyConfig: { ...moneyConfig },
+        sysConfig: { wait: sysConfig.wait, hold: sysConfig.hold, tf: sysConfig.tf, exitRule: 'SL_TP_TIME', tpRange: [TP_MIN_R, TP_MAX_R] },
+        btcRegime: globalBtcRegime,
+        riskBudget: { ...RISK_BUDGET },
+        fillAssumptions: { FILL_PIERCE, SLIP_SL, FEE_MAKER, FEE_TAKER, FUNDING_PER_8H },
+        signals: finalExport.map(buildBotSignal)
+    };
+    try { localStorage.setItem(BOT_STORAGE_KEY, JSON.stringify(payload)); } catch(e) {}
+    return payload;
+}
+
+function renderBotModal() {
+    const raw = localStorage.getItem(BOT_STORAGE_KEY) || '{}';
+    let pretty = raw;
+    try { pretty = JSON.stringify(JSON.parse(raw), null, 2); } catch(e) {}
+    document.getElementById('bot-json-view').innerText = pretty;
+}
+function copyBotJSON() { navigator.clipboard.writeText(localStorage.getItem(BOT_STORAGE_KEY) || '{}').then(() => showToast('📋 Đã copy!')); }
+function downloadBotJSON() {
+    const raw = localStorage.getItem(BOT_STORAGE_KEY) || '{}';
+    const blob = new Blob([raw], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = `v39_bot_signals_${Date.now()}.json`;
+    document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
+    showToast('⬇ Đã tải!');
+}
+
+async function fetchCoinSet(ctrl) {
+    if (coinSetCache && Date.now() - coinSetCache.t < 6 * 3600e3) return coinSetCache.set;
+    try {
+        const r = await fetch('https://fapi.binance.com/fapi/v1/exchangeInfo', { signal: ctrl.signal });
+        const d = await r.json();
+        const set = new Set(d.symbols.filter(s =>
+            s.status === 'TRADING' && s.quoteAsset === 'USDT' && s.contractType === 'PERPETUAL' &&
+            (!s.underlyingType || s.underlyingType === 'COIN')
+        ).map(s => s.symbol));
+        coinSetCache = { t: Date.now(), set };
+        return set;
+    } catch (e) { if (e.name === 'AbortError') throw e; return null; }
+}
+
+async function fetchTickers(ctrl, coinSet) {
+    const apis = [
+        { name: 'Binance', url: 'https://fapi.binance.com/fapi/v1/ticker/24hr', parse: d => d.map(t => ({ s: t.symbol, v: parseFloat(t.quoteVolume), p: parseFloat(t.lastPrice) })) },
+        { name: 'Bybit', url: 'https://api.bybit.com/v5/market/tickers?category=linear', parse: d => d.result.list.map(t => ({ s: t.symbol, v: parseFloat(t.turnover24h), p: parseFloat(t.lastPrice) })) }
+    ];
+    let errs = [];
+    for (let api of apis) {
+        try {
+            let r = await fetch(api.url, {signal: ctrl.signal});
+            if(r.ok) {
+                let d = await r.json();
+                let tickers = api.parse(d).filter(t => {
+                    const s = t.s;
+                    if (NON_COIN.has(s)) return false;
+                    if (coinSet && !coinSet.has(s)) return false;
+                    if (t.v < 3000000 && !FALLBACK_UNIVERSE.has(s)) return false;
+                    return true;
+                });
+                let uniqueMap = new Map();
+                tickers.forEach(t => uniqueMap.set(t.s, t));
+                tickers = Array.from(uniqueMap.values());
+                tickers.sort((a,b) => b.v - a.v);
+                if (tickers.length > 270) tickers = tickers.slice(0, 270);
+                return { source: api.name, tickers: tickers };
+            } else errs.push(`${api.name}:${r.status}`);
+        } catch(e) { if(e.name === 'AbortError') throw e; errs.push(`${api.name}:Failed`); }
+    }
+    throw new Error('Cả Binance và Bybit đều từ chối: ' + errs.join(' | '));
+}
+
+async function fetchKlines(symbol, preferredSource, ctrl, tf = '4h') {
+    const dbId = `${preferredSource}_${symbol}_${tf}`;
+    let cached = await getKlinesDB(dbId);
+    let limit = 1000;
+    if (cached && cached.length > 0) {
+        const lastT = cached[cached.length - 1].t;
+        const hoursDiff = (Date.now() - lastT) / 3600000;
+        const tfHours = 4;
+        const needed = Math.ceil(hoursDiff / tfHours) + 3;
+        if (needed < 1000) limit = Math.max(10, needed); else cached = null;
+    }
+    const binanceInterval = '4h';
+    const bybitInterval = '240';
+    const apis = [
+        { name: 'Binance', url: `https://fapi.binance.com/fapi/v1/klines?symbol=${symbol}&interval=${binanceInterval}&limit=${limit}`, parse: d => d.map(k=>({t:parseInt(k[0]), o:parseFloat(k[1]), h:parseFloat(k[2]), l:parseFloat(k[3]), c:parseFloat(k[4]), v:parseFloat(k[5]), tb: parseFloat(k[9] || 0)})) },
+        { name: 'Bybit', url: `https://api.bybit.com/v5/market/kline?category=linear&symbol=${symbol}&interval=${bybitInterval}&limit=${limit}`, parse: d => d.result.list.reverse().map(k=>({t:parseInt(k[0]), o:parseFloat(k[1]), h:parseFloat(k[2]), l:parseFloat(k[3]), c:parseFloat(k[4]), v:parseFloat(k[5]), tb: 0})) }
+    ];
+    apis.sort((a, b) => (a.name === preferredSource ? -1 : (b.name === preferredSource ? 1 : 0)));
+    let newData = null;
+    for (let api of apis) {
+        try { let r = await fetch(api.url, {signal: ctrl.signal}); if(r.ok) { let d = await r.json(); newData = api.parse(d); if (newData && newData.length > 0) break; } } catch(e) { if(e.name === 'AbortError') throw e; }
+    }
+    if (!newData) return cached || null;
+    if (cached) {
+        const firstNewT = newData[0].t;
+        cached = cached.filter(k => k.t < firstNewT);
+        cached.push(...newData);
+        if (cached.length > 1500) cached = cached.slice(cached.length - 1000);
+        await saveKlinesDB(dbId, cached);
+        return cached;
+    } else {
+        await saveKlinesDB(dbId, newData);
+        return newData;
+    }
+}
+
+function applyDailyCapPreFill(candidates) {
+    const sorted = [...candidates].sort((a, b) => a.sigT - b.sigT);
+    const byDay = new Map();
+    sorted.forEach(s => {
+        const d = new Date(s.sigT);
+        const dKey = `${d.getFullYear()}-${(d.getMonth()+1).toString().padStart(2,'0')}-${d.getDate().toString().padStart(2,'0')}`;
+        if (!byDay.has(dKey)) byDay.set(dKey, []);
+        byDay.get(dKey).push(s);
+    });
+    const selected = [];
+    for (const [dKey, arr] of byDay.entries()) {
+        const seenSym = new Set();
+        let taken = 0;
+        for (const s of arr) {
+            if (taken >= DAILY_CAP) break;
+            if (seenSym.has(s.sym)) continue;
+            seenSym.add(s.sym);
+            selected.push(s);
+            taken++;
+        }
+    }
+    return selected;
+}
+
+async function forceFetchData(){
+  if(currentFetchCtrl) currentFetchCtrl.abort();
+  const ctrl = new AbortController(); currentFetchCtrl = ctrl;
+  const ss = document.getElementById('scan-status');
+  document.getElementById('btn-refresh').classList.add('animate-spin', 'opacity-50');
+  ss.innerHTML = `<span class="text-[#fcd535]">Đang kết nối Server...</span>`;
+  const cutOffTime = Date.now() - TEST_PERIOD_MS;
+
+  try {
+    const coinSet = await fetchCoinSet(ctrl);
+    const { source: tickerSource, tickers: symbols } = await fetchTickers(ctrl, coinSet);
+    if (!symbols.find(t => t.s === 'BTCUSDT')) symbols.unshift({ s: 'BTCUSDT', p: 0 });
+
+    latestSymbolsMap.clear();
+    symbols.forEach(t => latestSymbolsMap.set(t.s, t.p));
+
+    const allKs = {};
+    let successCount = 0;
+    for(let i=0; i<symbols.length; i+=15){
+        if(ctrl.signal.aborted) return;
+        ss.innerHTML = `<span class="text-[#fcd535]">Tải 4H ${tickerSource} (${successCount}/${symbols.length})...</span>`;
+        const batch = symbols.slice(i, i+15);
+        await Promise.all(batch.map(async t => {
+            try {
+                let ks = await fetchKlines(t.s, tickerSource, ctrl, '4h');
+                if(ks && ks.length >= 720) { allKs[t.s] = ks; successCount++; }
+            } catch(e){}
+        }));
+    }
+    if(ctrl.signal.aborted) return;
+    let btcKs = allKs['BTCUSDT'];
+    if(!btcKs) throw new Error(`Không tải được BTC từ ${tickerSource}`);
+
+    const btcMacro = analyzeBtcMacroBoundary(btcKs);
+    const btcMacroSeries = buildBtcMacroSeries(btcKs);
+    const btcRegimeSeries = buildBtcRegimeSeries(btcKs);
+    const btcRegimeCurrent = getBtcMarketRegime(btcKs);
+    globalBtcRegime = btcRegimeCurrent;
+    sysConfig.regSeries = btcRegimeSeries;
+
+    document.getElementById('btc-macro-pos').innerText = `$${formatPrice(btcMacro.curP)} (${(btcMacro.posInChannel*100).toFixed(0)}%)`;
+    document.getElementById('btc-macro-bias').innerText = btcMacro.bias;
+    document.getElementById('btc-macro-atr').innerText = btcRegimeCurrent.desc;
+
+    const btcZoneBadge = document.getElementById('btc-zone-badge');
+    if (btcRegimeCurrent.blockLongs || btcRegimeCurrent.blockShorts) {
+        btcZoneBadge.innerText = `${btcMacro.zone.replace('_',' ')} • ${btcRegimeCurrent.regime}`;
+        btcZoneBadge.className = 'px-2.5 py-1 rounded text-[10px] font-black uppercase font-mono tracking-wider bg-[#f6465d]/20 text-[#f6465d] border border-[#f6465d]/40 animate-pulse';
+    } else if (btcMacro.zone === 'UPPER_BOUNDARY') {
+        btcZoneBadge.innerText = btcMacro.zone.replace('_', ' ');
+        btcZoneBadge.className = 'px-2.5 py-1 rounded text-[10px] font-black uppercase font-mono tracking-wider bg-[#f6465d]/20 text-[#f6465d] border border-[#f6465d]/40';
+    } else if (btcMacro.zone === 'LOWER_BOUNDARY') {
+        btcZoneBadge.innerText = btcMacro.zone.replace('_', ' ');
+        btcZoneBadge.className = 'px-2.5 py-1 rounded text-[10px] font-black uppercase font-mono tracking-wider bg-[#0ecb81]/20 text-[#0ecb81] border border-[#0ecb81]/40';
+    } else {
+        btcZoneBadge.innerText = btcMacro.zone.replace('_', ' ');
+        btcZoneBadge.className = 'px-2.5 py-1 rounded text-[10px] font-black uppercase font-mono tracking-wider bg-[#fcd535]/20 text-[#fcd535] border border-[#fcd535]/40';
+    }
+
+    const btcSeries = buildBtcSeries(btcKs);
+
+    ss.innerHTML = `<span class="text-[#fcd535]">Đang xếp hạng & Phân tích...</span>`;
+    const retByTime = new Map();
+    for (let [sym, ksRaw] of Object.entries(allKs)) {
+        let ksClosed = ksRaw[ksRaw.length-1].t + 14400000 > Date.now() ? ksRaw.slice(0, -1) : ksRaw;
+        for (let i = 18; i < ksClosed.length; i++) {
+            const T = ksClosed[i].t;
+            if (T < cutOffTime) continue;
+            const ret = (ksClosed[i].c - ksClosed[i-18].c) / ksClosed[i-18].c;
+            if(!retByTime.has(T)) retByTime.set(T, []);
+            retByTime.get(T).push({sym, ret});
+        }
+    }
+    const rsRankMap = new Map();
+    for (let [T, arr] of retByTime.entries()) {
+        arr.sort((a, b) => a.ret - b.ret);
+        const botIdx = Math.floor(arr.length * RS_PERCENTILE);
+        const topIdx = Math.floor(arr.length * (1 - RS_PERCENTILE));
+        rsRankMap.set(T, { botThresh: arr[botIdx]?.ret || 0, topThresh: arr[topIdx]?.ret || 0 });
+    }
+
+    const allCandidates = [];
+    globalRejectedCount = 0;
+
+    for (let [sym, ksRaw] of Object.entries(allKs)) {
+        if(sym === 'BTCUSDT') continue;
+        let ksClosed = ksRaw[ksRaw.length-1].t + 14400000 > Date.now() ? ksRaw.slice(0, -1) : ksRaw;
+        const cArr = ksClosed.map(x=>x.c), atrArr = calcATR(ksClosed, 14);
+        const ema20 = calcEMA(cArr, 20);
+        const ema50 = calcEMA(cArr, 50);
+        const ema200 = calcEMA(cArr, 200);
+        const curPrice = latestSymbolsMap.get(sym) || ksClosed[ksClosed.length-1].c;
+        const dTrendMap = buildDailyTrendMap(ksClosed);
+
+        for(let j=150; j<ksClosed.length; j++){
+            const T = ksClosed[j].t;
+            if (T < cutOffTime) continue;
+            const btcMacroAtT = btcMacroSeries.get(T);
+            if (!btcMacroAtT) continue;
+            const btcInfo = btcSeries.get(T);
+            const rsInfo = rsRankMap.get(T);
+            const btcRegAtT = btcRegimeSeries.get(T);
+            if (!btcInfo || !rsInfo || !btcRegAtT) continue;
+            const dTrend = getDailyTrendAt(dTrendMap, T);
+
+            const sigs = [
+                findPullback(ksClosed, j, atrArr, ema20, ema50, ema200, btcInfo, rsInfo, sysConfig, 'LONG', dTrend, btcMacroAtT.zone),
+                findPullback(ksClosed, j, atrArr, ema20, ema50, ema200, btcInfo, rsInfo, sysConfig, 'SHORT', dTrend, btcMacroAtT.zone)
+            ];
+
+            sigs.forEach(sig => {
+                if(!sig) return;
+                if (btcRegAtT.blockLongs && sig.type === 'LONG') return;
+                if (btcRegAtT.blockShorts && sig.type === 'SHORT') return;
+
+                const key = `4h_${sym}_${sig.type}_${sig.strat}_${sig.sigT}`;
+                sig.tf = '4h'; sig.sym = sym; sig.curPrice = curPrice; sig.key = key;
+                sig.age = ksClosed.length - 1 - j;
+                sig.score += btcMacroAtT.scoreMod;
+
+                if (sig.score < V39_CONFIG.MIN_SCORE) return;
+
+                allCandidates.push(sig);
+            });
+        }
+    }
+
+    const selectedSignals = applyDailyCapPreFill(allCandidates);
+    selectedSignals.sort((a, b) => a.sigT - b.sigT);
+    const busyUntil = new Map();
+    const dedupedSignals = [];
+    for (const sig of selectedSignals) {
+        const busy = busyUntil.get(sig.sym) || 0;
+        if (busy > sig.sigT) continue;
+        dedupedSignals.push(sig);
+        busyUntil.set(sig.sym, sig.sigT + sysConfig.wait * sysConfig.ms);
+    }
+
+    const logs = [];
+    const pendingArr = [];
+    const liveActionable = [];
+
+    dedupedSignals.forEach(sig => {
+        const ksRaw = allKs[sig.sym];
+        if (!ksRaw) return;
+        const ksClosed = ksRaw[ksRaw.length-1].t + 14400000 > Date.now() ? ksRaw.slice(0,-1) : ksRaw;
+        let j = -1;
+        for (let k = 0; k < ksClosed.length; k++) {
+            if (ksClosed[k].t === sig.sigT) { j = k; break; }
+        }
+        if (j < 0) return;
+
+        const evalResult = evaluateEngine(ksRaw, j, sig, sysConfig);
+        sig.eval = evalResult;
+        const isActuallyFilled = evalResult.nLegs > 0;
+
+        if (isActuallyFilled) {
+            const endT = CLOSED_STATES.includes(evalResult.state) ? evalResult.closeTime : Infinity;
+            busyUntil.set(sig.sym, endT || Infinity);
+        }
+
+        if (isActuallyFilled || ACTIVE_STATES.includes(evalResult.state)) {
+            sig.final = (evalResult.isComplete && isActuallyFilled) ? evalResult : null;
+            logs.push(sig);
+        }
+
+        const expireT = sig.sigT + sysConfig.wait * sysConfig.ms;
+        if (evalResult.state === 'WAITING' && expireT > Date.now()) {
+            const risk = Math.abs(sig.avgEntry - sig.slTarget);
+            if (risk > 0) {
+                const isL = sig.type === 'LONG';
+                const floatDist = isL ? (sig.curPrice - sig.avgEntry) : (sig.avgEntry - sig.curPrice);
+                const floatR = floatDist / risk;
+                const distATR = Math.abs(sig.curPrice - sig.avgEntry) / (sig.atr || 1);
+                const tooFar = floatR > MAX_FLOAT_R || floatR < MIN_FLOAT_R || distATR > MAX_DIST_ATR;
+                if (!tooFar) liveActionable.push(sig);
+                else { globalRejectedCount++; pendingArr.push(sig); }
+            } else liveActionable.push(sig);
+        }
+    });
+
+    let myTrades = JSON.parse(localStorage.getItem('quant_v39_my_trades') || '{}');
+    let hasUpdatedTrades = false;
+    for (let k in myTrades) {
+        let tr = myTrades[k];
+        if (latestSymbolsMap.has(tr.sym)) { tr.curPrice = latestSymbolsMap.get(tr.sym); hasUpdatedTrades = true; }
+        let ksRaw = allKs[tr.sym];
+        if (ksRaw) {
+            let j = -1;
+            for (let m = 0; m < ksRaw.length; m++) { if (ksRaw[m].t === tr.sigT) { j = m; break; } }
+            if (j >= 0) {
+                let reEvalRes = evaluateEngine(ksRaw, j, tr, sysConfig);
+                tr.eval = reEvalRes;
+                if (reEvalRes.isComplete && reEvalRes.nLegs > 0) tr.final = reEvalRes;
+                hasUpdatedTrades = true;
+            }
+        }
+    }
+    if (hasUpdatedTrades) localStorage.setItem('quant_v39_my_trades', JSON.stringify(myTrades));
+
+    const activeKeys = new Set();
+    logs.forEach(l => {
+        const st = l.final?.state || l.eval?.state || 'WAITING';
+        if (ACTIVE_STATES.includes(st)) activeKeys.add(l.sym);
+    });
+
+    const dedupeActionable = [];
+    const seenSymAct = new Set();
+    liveActionable.sort((a,b) => b.score - a.score || b.sigT - a.sigT);
+    liveActionable.forEach(s => {
+        if (!activeKeys.has(s.sym) && !seenSymAct.has(s.sym)) { seenSymAct.add(s.sym); dedupeActionable.push(s); }
+    });
+    liveActionable.length = 0; liveActionable.push(...dedupeActionable);
+
+    const dedupePending = [];
+    const seenSymPend = new Set();
+    pendingArr.sort((a,b) => {
+        const ra = Math.abs(a.avgEntry - a.slTarget), rb = Math.abs(b.avgEntry - b.slTarget);
+        const fa = ra > 0 ? Math.abs(a.curPrice - a.avgEntry) / ra : 999;
+        const fb = rb > 0 ? Math.abs(b.curPrice - b.avgEntry) / rb : 999;
+        return fa - fb || b.score - a.score;
+    });
+    pendingArr.forEach(s => {
+        if (!activeKeys.has(s.sym) && !seenSymPend.has(s.sym)) { seenSymPend.add(s.sym); dedupePending.push(s); }
+    });
+    pendingArr.length = 0; pendingArr.push(...dedupePending);
+
+    let runningLogs = [], closedLogs = [];
+    logs.forEach(l => {
+        const st = l.final?.state || l.eval?.state || 'WAITING';
+        if (ACTIVE_STATES.includes(st)) runningLogs.push(l);
+        else if (CLOSED_STATES.includes(st)) closedLogs.push(l);
+    });
+
+    const dedupeRunning = [];
+    const seenRunning = new Set();
+    runningLogs.sort((a,b) => b.score - a.score || b.sigT - a.sigT);
+    runningLogs.forEach(s => { if (!seenRunning.has(s.sym)) { seenRunning.add(s.sym); dedupeRunning.push(s); } });
+    runningLogs = dedupeRunning;
+
+    const groupedClosed = {};
+    closedLogs.forEach(l => {
+        const k = l.sym;
+        if(!groupedClosed[k]) groupedClosed[k] = [];
+        groupedClosed[k].push(l);
+    });
+    let dedupeClosed = [];
+    for (const key in groupedClosed) {
+        let arr = groupedClosed[key];
+        arr.sort((a, b) => a.sigT - b.sigT);
+        let filteredArr = [];
+        for (let s of arr) {
+            if (filteredArr.length === 0) filteredArr.push(s);
+            else {
+                let lastAccepted = filteredArr[filteredArr.length - 1];
+                if (s.sigT - lastAccepted.sigT < 86400000) {
+                    if (s.score > lastAccepted.score) filteredArr[filteredArr.length - 1] = s;
+                } else filteredArr.push(s);
+            }
+        }
+        dedupeClosed.push(...filteredArr);
+    }
+
+    let finalLogs = [...runningLogs, ...dedupeClosed];
+    const finalKeys = new Set(finalLogs.map(l => l.key));
+    Object.values(myTrades).forEach(tr => {
+        const st = tr.final?.state || tr.eval?.state;
+        if (st && st !== 'WAITING' && !finalKeys.has(tr.key)) { finalLogs.push(tr); finalKeys.add(tr.key); }
+    });
+    finalLogs.sort((a,b) => {
+        const aActive = (!a.final && ACTIVE_STATES.includes(a.eval?.state)) ? 1 : 0;
+        const bActive = (!b.final && ACTIVE_STATES.includes(b.eval?.state)) ? 1 : 0;
+        return bActive - aActive || (b.final?.closeTime || b.sigT) - (a.final?.closeTime || a.sigT);
+    });
+
+    globalActionable = liveActionable;
+    globalLogs = finalLogs;
+    globalPending = pendingArr;
+
+    rebuildBotExport();
+    updateUIChips(); renderDashboards(liveActionable, finalLogs); renderPortfolio();
+    const cfgTxt = V39_CONFIG.LONG_ONLY ? 'LONG' : 'ALL';
+    const catTxt = V39_CONFIG.REQUIRE_CATALYST ? '+CAT' : '';
+    ss.innerHTML = `<span class="text-[#0ecb81] font-bold">✓ V39.9.2 Pure 4H | ${cfgTxt}${catTxt} ≥${V39_CONFIG.MIN_SCORE} | Buf: ${sysConfig.slBufAtr} | 1R: $${get1R_USDT().toFixed(2)}</span>`;
+  } catch(e) {
+    if(!ctrl.signal.aborted) ss.innerHTML = `<span class="text-[#f6465d] font-bold">❌ Lỗi: ${e.message}</span>`;
+  } finally {
+    if(currentFetchCtrl===ctrl) document.getElementById('btn-refresh').classList.remove('animate-spin', 'opacity-50');
+  }
+}
+
+function computeDetailedStats(logs) {
+    const closed = logs.filter(l => l.final && CLOSED_STATES.includes(l.final.state) && (l.eval?.nLegs > 0));
+    const running = logs.filter(l => {
+        const st = l.final?.state || l.eval?.state || 'WAITING';
+        return ACTIVE_STATES.includes(st);
+    });
+    const byState = { TP: 0, SL: 0, TIME: 0 };
+    let grossR = 0, entryFeeSumR = 0, exitFeeSumR = 0, fundingSumR = 0, netR = 0;
+    let grossUSD = 0, feeUSD = 0, fundingUSD = 0, netUSD = 0;
+    let sumSlPct = 0, fullWins = 0, losses = 0, neutrals = 0;
+    let bestR = -Infinity, worstR = Infinity, totalBars = 0;
+    const oneR_const = get1R_USDT();
+    const buckets = { '70-79': { w:0, l:0, netR:0, netUSD:0 }, '80-94': { w:0, l:0, netR:0, netUSD:0 }, '95+': { w:0, l:0, netR:0, netUSD:0 }, '105+': { w:0, l:0, netR:0, netUSD:0 } };
+    const byZone = {}, byDir = {};
+    const byExit = { TP: { w:0, l:0, netR:0, netUSD:0 }, SL: { w:0, l:0, netR:0, netUSD:0 }, TIME: { w:0, l:0, netR:0, netUSD:0 } };
+    const bySlTag = {
+        'Ép SL 5.5%': { w:0, l:0, netR:0, netUSD:0, count:0 },
+        'Nới SL 2.5%': { w:0, l:0, netR:0, netUSD:0, count:0 },
+        'SL gốc': { w:0, l:0, netR:0, netUSD:0, count:0 }
+    };
+    const byCatalyst = {
+        'Có catalyst': { w:0, l:0, netR:0, netUSD:0, count:0 },
+        'Không catalyst': { w:0, l:0, netR:0, netUSD:0, count:0 }
+    };
+    let rrSum = 0;
+
+    closed.forEach(l => {
+        const ev = l.final;
+        byState[ev.state] = (byState[ev.state] || 0) + 1;
+        const slPct = Math.abs(l.avgEntry - l.slTarget) / l.avgEntry;
+        const g = ev.grossR !== undefined ? ev.grossR : ev.netR;
+        const ef = ev.entryFeeR || 0, xf = ev.exitFeeAndSlipR || 0, fd = ev.fundingR || 0, nr = ev.netR || 0;
+        grossR += g; entryFeeSumR += ef; exitFeeSumR += xf; fundingSumR += fd; netR += nr;
+        grossUSD += g * oneR_const; feeUSD += (ef + xf) * oneR_const; fundingUSD += fd * oneR_const; netUSD += nr * oneR_const;
+        sumSlPct += slPct; totalBars += ev.barsHeld || 0;
+        rrSum += l.rr || 0;
+
+        if (nr > 0.01) fullWins++;
+        else if (nr < -0.01) losses++;
+        else neutrals++;
+
+        if (nr > bestR) bestR = nr;
+        if (nr < worstR) worstR = nr;
+
+        const sc = l.score;
+        const bk = sc >= 105 ? '105+' : (sc >= 95 ? '95+' : (sc >= 80 ? '80-94' : '70-79'));
+        if (nr > 0) buckets[bk].w++; else buckets[bk].l++;
+        buckets[bk].netR += nr; buckets[bk].netUSD += nr * oneR_const;
+
+        const tags = l.tags || [];
+        let tagBucket = 'SL gốc';
+        if (tags.includes('Ép SL 5.5%') || tags.includes('Ép SL 5%')) tagBucket = 'Ép SL 5.5%';
+        else if (tags.includes('Nới SL 2.5%')) tagBucket = 'Nới SL 2.5%';
+        bySlTag[tagBucket].count++;
+        if (nr > 0) bySlTag[tagBucket].w++; else bySlTag[tagBucket].l++;
+        bySlTag[tagBucket].netR += nr;
+        bySlTag[tagBucket].netUSD += nr * oneR_const;
+
+        const hasCat = tags.includes('Ngược Bão BTC') || tags.includes('Sập Trước BTC');
+        const catBucket = hasCat ? 'Có catalyst' : 'Không catalyst';
+        byCatalyst[catBucket].count++;
+        if (nr > 0) byCatalyst[catBucket].w++; else byCatalyst[catBucket].l++;
+        byCatalyst[catBucket].netR += nr;
+        byCatalyst[catBucket].netUSD += nr * oneR_const;
+
+        const zones = tags.filter(t => t.includes('BTC') || t.includes('Biên'));
+        const zKey = zones.length > 0 ? zones[0].replace('⭐ ', '') : 'NEUTRAL';
+        [[byZone, zKey], [byDir, l.type]].forEach(([map, key]) => {
+            if (!map[key]) map[key] = { w: 0, l: 0, netR: 0, netUSD: 0 };
+            if (nr > 0) map[key].w++; else map[key].l++;
+            map[key].netR += nr; map[key].netUSD += nr * oneR_const;
+        });
+
+        const ek = ev.state;
+        if (byExit[ek]) {
+            if (nr > 0) byExit[ek].w++; else byExit[ek].l++;
+            byExit[ek].netR += nr; byExit[ek].netUSD += nr * oneR_const;
+        }
+    });
+
+    const sortedClosed = closed.slice().sort((a,b) => (a.final.closeTime || a.sigT) - (b.final.closeTime || b.sigT));
+    let equity = 0, peak = 0, maxDDR = 0, maxDDUSD = 0;
+    let lossStreak = 0, maxLossStreak = 0;
+    sortedClosed.forEach(l => {
+        const nr = l.final.netR || 0;
+        equity += nr;
+        if (equity > peak) peak = equity;
+        const dd = peak - equity;
+        if (dd > maxDDR) maxDDR = dd;
+        const ddUSD = dd * oneR_const;
+        if (ddUSD > maxDDUSD) maxDDUSD = ddUSD;
+        if (nr < -0.01) { lossStreak++; if (lossStreak > maxLossStreak) maxLossStreak = lossStreak; }
+        else if (nr > 0.01) lossStreak = 0;
+    });
+
+    let floatingR = 0, floatingUSD = 0, runningCount = 0;
+    running.forEach(l => {
+        const stats = calculateLiveStats(l, l.eval);
+        floatingR += stats.netR; floatingUSD += stats.usd; runningCount++;
+    });
+
+    return {
+        count: closed.length, byState,
+        grossR, entryFeeSumR, exitFeeSumR, fundingSumR, netR,
+        grossUSD, feeUSD, fundingUSD, netUSD,
+        avgSlPct: closed.length > 0 ? sumSlPct / closed.length : 0,
+        avgRR: closed.length > 0 ? rrSum / closed.length : 0,
+        fullWins, losses, neutrals,
+        bestR: bestR === -Infinity ? 0 : bestR, worstR: worstR === Infinity ? 0 : worstR,
+        avgBars: closed.length > 0 ? totalBars / closed.length : 0,
+        buckets, byZone, byDir, byExit, bySlTag, byCatalyst,
+        maxDDR, maxDDUSD, maxLossStreak,
+        floatingR, floatingUSD, runningCount,
+        totalNetR: netR + floatingR,
+        totalNetUSD: netUSD + floatingUSD,
+    };
+}
+
+function renderStatsModal() {
+    const st = computeDetailedStats(globalLogs);
+    const dec = st.fullWins + st.losses;
+    const strictWinrate = dec > 0 ? (st.fullWins / dec * 100).toFixed(1) : '0.0';
+    const expectancyR = st.count > 0 ? st.netR / st.count : 0;
+    const expectancyUSD = st.count > 0 ? st.netUSD / st.count : 0;
+    const roi = (st.netUSD / moneyConfig.capital) * 100;
+    const row = (label, val, cls='text-[#eaecef]') => `<div class="flex justify-between py-1.5 border-b border-[#2b3139]/50"><span class="text-[11px] text-[#848e9c]">${label}</span><span class="font-mono text-[12px] font-bold ${cls}">${val}</span></div>`;
+    const bucketRow = (name, o) => {
+        const tot = o.w + o.l;
+        const wr = tot > 0 ? (o.w / tot * 100).toFixed(0) + '%' : '--';
+        const netCls = o.netR > 0 ? 'text-[#0ecb81]' : (o.netR < 0 ? 'text-[#f6465d]' : 'text-[#848e9c]');
+        return `<div class="flex justify-between items-center py-1.5 border-b border-[#2b3139]/50">
+            <span class="text-[11px] text-[#848e9c]">${name}</span>
+            <span class="text-[11px] font-mono">n=${tot} | WR <b class="text-[#0ecb81]">${wr}</b> | Net <b class="${netCls}">${o.netR>0?'+':''}${o.netR.toFixed(2)}R</b> (${formatUSDT(o.netUSD)})</span>
+        </div>`;
+    };
+    const breakdownRow = (label, o) => {
+        const tot = o.w + o.l;
+        const wr = tot > 0 ? (o.w / tot * 100).toFixed(0) + '%' : '--';
+        const cls = o.netR > 0 ? 'text-[#0ecb81]' : (o.netR < 0 ? 'text-[#f6465d]' : 'text-[#848e9c]');
+        return `<div class="flex justify-between py-1.5 border-b border-[#2b3139]/50">
+            <span class="text-[11px] text-[#848e9c] truncate pr-2">${label}</span>
+            <span class="text-[11px] font-mono whitespace-nowrap">n=${tot} | WR <b class="text-[#0ecb81]">${wr}</b> | <b class="${cls}">${o.netR>0?'+':''}${o.netR.toFixed(2)}R</b></span>
+        </div>`;
+    };
+
+    const epContribution = st.netR !== 0 ? (st.bySlTag['Ép SL 5.5%'].netR / st.netR * 100) : 0;
+    const gocContribution = st.netR !== 0 ? (st.bySlTag['SL gốc'].netR / st.netR * 100) : 0;
+    let edgeWarning = '';
+    if (epContribution > 60 && st.bySlTag['Ép SL 5.5%'].count >= 3) {
+        edgeWarning = `<div class="bg-[#f6465d]/10 border border-[#f6465d]/40 rounded-lg p-2 mt-2">
+            <div class="text-[10px] text-[#f6465d] font-bold">⚠️ EDGE ẢO CẢNH BÁO</div>
+            <div class="text-[9px] text-[#eaecef] mt-1">"Ép SL 5.5%" chiếm <b>${epContribution.toFixed(0)}%</b> netR → Edge nằm ở entry sâu!</div>
+        </div>`;
+    } else if (gocContribution > 60 && st.bySlTag['SL gốc'].count >= 3) {
+        edgeWarning = `<div class="bg-[#0ecb81]/10 border border-[#0ecb81]/40 rounded-lg p-2 mt-2">
+            <div class="text-[10px] text-[#0ecb81] font-bold">✓ EDGE THẬT</div>
+            <div class="text-[9px] text-[#eaecef] mt-1">"SL gốc" chiếm <b>${gocContribution.toFixed(0)}%</b> netR → Edge thật ở fib pullback!</div>
+        </div>`;
+    }
+
+    document.getElementById('stats-modal-body').innerHTML = `
+    <div class="bg-[#fcd535]/10 border border-[#fcd535]/30 rounded-lg p-3">
+        <div class="text-[10px] text-[#fcd535] font-bold uppercase mb-1">🎯 Tóm Tắt — V39.9.2 Optimized</div>
+        <div class="text-[11px] text-[#eaecef] leading-relaxed">
+            <b class="text-[#fcd535]">${st.count}</b> đã đóng · <b class="text-[#3b82f6]">${st.runningCount}</b> đang chạy<br>
+            Realized: <b class="${st.netR>0?'text-[#0ecb81]':'text-[#f6465d]'}">${st.netR>0?'+':''}${st.netR.toFixed(2)}R = ${formatUSDT(st.netUSD)}</b><br>
+            TỔNG: <b class="${st.totalNetR>0?'text-[#0ecb81]':'text-[#f6465d]'}">${st.totalNetR>0?'+':''}${st.totalNetR.toFixed(2)}R = ${formatUSDT(st.totalNetUSD)}</b>
+        </div>
+    </div>
+
+    <div class="bg-[#a855f7]/10 border border-[#a855f7]/30 rounded-lg p-3">
+        <div class="text-[10px] text-[#a855f7] font-bold uppercase mb-2">⚙️ Config Hiện Tại (V39.9.2)</div>
+        <div class="text-[11px] text-[#eaecef] leading-relaxed font-mono">
+            LONG_ONLY: <b class="${V39_CONFIG.LONG_ONLY?'text-[#0ecb81]':'text-[#848e9c]'}">${V39_CONFIG.LONG_ONLY}</b> · 
+            REQUIRE_CATALYST: <b class="${V39_CONFIG.REQUIRE_CATALYST?'text-[#0ecb81]':'text-[#848e9c]'}">${V39_CONFIG.REQUIRE_CATALYST}</b><br>
+            MIN_SCORE: <b class="text-[#fcd535]">${V39_CONFIG.MIN_SCORE}</b> · Risk: <b>${(moneyConfig.riskPct*100).toFixed(2)}%</b> · Lev: <b>x${moneyConfig.leverage}</b><br>
+            SL Buffer: <b class="text-[#0ecb81]">${sysConfig.slBufAtr} ATR</b> · MAX_SL: <b>5.5%</b> · Hold: <b>${sysConfig.hold} bars</b>
+        </div>
+    </div>
+
+    <div class="bg-[#f6465d]/10 border border-[#f6465d]/40 rounded-lg p-3">
+        <div class="text-[10px] text-[#f6465d] font-bold uppercase mb-2">🎯 Catalyst Breakdown</div>
+        ${bucketRow('🚀 Có catalyst BTC', st.byCatalyst['Có catalyst'])}
+        ${bucketRow('⚪ Không catalyst', st.byCatalyst['Không catalyst'])}
+    </div>
+
+    <div class="bg-[#f6465d]/10 border border-[#f6465d]/40 rounded-lg p-3">
+        <div class="text-[10px] text-[#f6465d] font-bold uppercase mb-2">🎯 Edge Nằm Ở Đâu? (SL Clamp)</div>
+        ${bucketRow('🔥 Ép SL 5.5%', st.bySlTag['Ép SL 5.5%'])}
+        ${bucketRow('📐 SL gốc (fib chuẩn)', st.bySlTag['SL gốc'])}
+        ${bucketRow('📉 Nới SL 2.5%', st.bySlTag['Nới SL 2.5%'])}
+        ${edgeWarning}
+    </div>
+
+    <div>
+        <div class="text-[10px] text-[#848e9c] font-bold uppercase mb-2">📈 Hiệu Suất</div>
+        <div class="bg-[#181a20] border border-[#2b3139] rounded-lg p-3">
+            ${row('Winrate', `${strictWinrate}\% (${st.fullWins}W/${st.losses}L${st.neutrals>0?'/'+st.neutrals+'N':''})`, 'text-[#0ecb81]')}
+            ${row('Kỳ vọng / lệnh', `${expectancyR>0?'+':''}${expectancyR.toFixed(3)}R (${formatUSDT(expectancyUSD)})`, expectancyR>0?'text-[#0ecb81]':'text-[#f6465d]')}
+            ${row('ROI NET', `${roi>0?'+':''}${roi.toFixed(1)}%`, roi>0?'text-[#0ecb81]':'text-[#f6465d]')}
+            ${row('Best Trade', `${st.bestR>0?'+':''}${st.bestR.toFixed(2)}R`, 'text-[#0ecb81]')}
+            ${row('Worst Trade', `${st.worstR.toFixed(2)}R`, 'text-[#f6465d]')}
+            ${row('SL% TB', `${(st.avgSlPct*100).toFixed(2)}%`, 'text-[#0ecb81]')}
+            ${row('RR TB', `${st.avgRR.toFixed(2)}R`, 'text-[#fcd535]')}
+            ${row('Giữ TB', `${st.avgBars.toFixed(1)} nến 4H`, 'text-[#848e9c]')}
+        </div>
+    </div>
+
+    <div>
+        <div class="text-[10px] text-[#a855f7] font-bold uppercase mb-2">🚪 Kết Quả Theo Cách Đóng Lệnh</div>
+        <div class="bg-[#181a20] border border-[#a855f7]/30 rounded-lg p-3">
+            ${bucketRow('✓ Chốt TP', st.byExit.TP)}
+            ${bucketRow('✗ Dính SL', st.byExit.SL)}
+            ${bucketRow('⏱ Hết hạn (Time)', st.byExit.TIME)}
+        </div>
+    </div>
+
+    <div>
+        <div class="text-[10px] text-[#f6465d] font-bold uppercase mb-2">⚠️ Rủi Ro</div>
+        <div class="bg-[#181a20] border border-[#f6465d]/30 rounded-lg p-3">
+            ${row('Max Drawdown', `${st.maxDDR.toFixed(2)}R (${formatUSDT(-st.maxDDUSD)})`, 'text-[#f6465d]')}
+            ${row('Chuỗi thua dài nhất', `${st.maxLossStreak} lệnh (${formatUSDT(-st.maxLossStreak * get1R_USDT())})`, 'text-[#f6465d]')}
+        </div>
+    </div>
+
+    <div>
+        <div class="text-[10px] text-[#848e9c] font-bold uppercase mb-2">🎯 Winrate Theo Score</div>
+        <div class="bg-[#181a20] border border-[#2b3139] rounded-lg p-3">
+            ${bucketRow('Score 70-79', st.buckets['70-79'])}
+            ${bucketRow('Score 80-94', st.buckets['80-94'])}
+            ${bucketRow('Score 95-104', st.buckets['95+'])}
+            ${bucketRow('Score 105+', st.buckets['105+'])}
+        </div>
+    </div>
+
+    <div>
+        <div class="text-[10px] text-[#848e9c] font-bold uppercase mb-2">📐 Vùng BTC & Hướng</div>
+        <div class="bg-[#181a20] border border-[#2b3139] rounded-lg p-3">
+            ${Object.entries(st.byZone).map(([k,v]) => breakdownRow(k, v)).join('') || '<div class="text-[10px] text-[#848e9c]">Chưa đủ dữ liệu</div>'}
+            ${Object.entries(st.byDir).map(([k,v]) => breakdownRow('Dir ' + k, v)).join('')}
+        </div>
+    </div>
+
+    <div>
+        <div class="text-[10px] text-[#848e9c] font-bold uppercase mb-2">💰 Phí & Funding</div>
+        <div class="bg-[#181a20] border border-[#2b3139] rounded-lg p-3">
+            ${row('Gross', `${st.grossR>0?'+':''}${st.grossR.toFixed(2)}R (${formatUSDT(st.grossUSD)})`, 'text-[#eaecef]')}
+            ${row('Entry Fee', `-${st.entryFeeSumR.toFixed(2)}R`, 'text-[#848e9c]')}
+            ${row('Exit Fee + Slip', `-${st.exitFeeSumR.toFixed(2)}R`, 'text-[#848e9c]')}
+            ${row('Funding', `-${st.fundingSumR.toFixed(2)}R`, 'text-[#848e9c]')}
+            ${row('Net', `${st.netR>0?'+':''}${st.netR.toFixed(2)}R (${formatUSDT(st.netUSD)})`, st.netR>0?'text-[#0ecb81]':'text-[#f6465d]')}
+        </div>
+    </div>`;
+}
+
+function renderDashboards(actionable, logs){
+    let filteredActionable = actionable.filter(s => s.score >= V39_CONFIG.MIN_SCORE);
+    if(appState.type !== 'ALL') filteredActionable = filteredActionable.filter(s => s.type === appState.type);
+    filteredActionable.forEach(s => { s.rankScore = calcRankScore(s); s.quality = getQualityGrade(s.rankScore); });
+    if (appState.minGrade) filteredActionable = filteredActionable.filter(s => s.quality.grade === 'A+' || s.quality.grade === 'A');
+
+    const allActiveForSizing = [
+        ...filteredActionable,
+        ...logs.filter(l => ACTIVE_STATES.includes(l.final?.state || l.eval?.state)),
+        ...globalPending
+    ];
+    const uniqueSizingMap = new Map();
+    allActiveForSizing.forEach(s => uniqueSizingMap.set(s.key, s));
+    const sizingPool = Array.from(uniqueSizingMap.values());
+    filteredActionable.forEach(s => { s.directionalSizing = computeDirectionalSizing(s, sizingPool); });
+
+    globalRejectedByHardCap = 0;
+    filteredActionable.forEach(s => { if (s.directionalSizing?.reject) globalRejectedByHardCap++; });
+
+    filteredActionable.sort((a, b) => {
+        const distA = Math.abs(a.curPrice - a.etEdge) / (a.atr || 1);
+        const distB = Math.abs(b.curPrice - b.etEdge) / (b.atr || 1);
+        const nearA = distA <= 1.0 ? 0 : 1;
+        const nearB = distB <= 1.0 ? 0 : 1;
+        const rejA = a.directionalSizing?.reject ? 1 : 0;
+        const rejB = b.directionalSizing?.reject ? 1 : 0;
+        return rejA - rejB || nearA - nearB || (b.rankScore || 0) - (a.rankScore || 0) || b.score - a.score;
+    });
+    let uniqueAct = [], seenActSyms = new Set();
+    for(let s of filteredActionable) { if(!seenActSyms.has(s.sym)) { seenActSyms.add(s.sym); uniqueAct.push(s); } }
+    filteredActionable = uniqueAct.slice(0, 18);
+
+    let sourceLogs = (appState.logCat === 'PENDING') ? globalPending : logs;
+    let filteredLogs = sourceLogs.filter(l => {
+        const st = l.final?.state || l.eval?.state || 'WAITING';
+        if(appState.logCat === 'PENDING') return st === 'WAITING';
+        if(appState.logCat === 'TRACKED') return ACTIVE_STATES.includes(st);
+        if(appState.logCat === 'CLOSED') return CLOSED_STATES.includes(st);
+        return false;
+    });
+
+    if(appState.logCat === 'PENDING') {
+        filteredLogs.sort((a, b) => {
+            const ra = Math.abs(a.avgEntry - a.slTarget), rb = Math.abs(b.avgEntry - b.slTarget);
+            const fa = ra > 0 ? Math.abs(a.curPrice - a.avgEntry) / ra : 999;
+            const fb = rb > 0 ? Math.abs(b.curPrice - b.avgEntry) / rb : 999;
+            return fa - fb || b.score - a.score;
+        });
+    } else {
+        filteredLogs.sort((a,b) => {
+            const aActive = (!a.final && ACTIVE_STATES.includes(a.eval?.state)) ? 1 : 0;
+            const bActive = (!b.final && ACTIVE_STATES.includes(b.eval?.state)) ? 1 : 0;
+            return bActive - aActive || (b.final?.closeTime || b.sigT) - (a.final?.closeTime || a.sigT);
+        });
+    }
+    filteredLogs.forEach(s => { s.rankScore = calcRankScore(s); s.quality = getQualityGrade(s.rankScore); });
+    filteredLogs.forEach(s => { if (!s.directionalSizing) s.directionalSizing = computeDirectionalSizing(s, sizingPool); });
+
+    const enteredKeys = getEnteredKeys();
+    const bdAction = document.getElementById('actionable-board'), bdTracked = document.getElementById('tracked-board');
+    if(filteredActionable.length === 0) bdAction.innerHTML = `<div class="col-span-full text-center py-16 bg-[#0b0e11] rounded-xl border border-[#2b3139] border-dashed"><div class="text-4xl mb-3 opacity-30">🛡️</div><div class="text-[#848e9c] text-sm font-bold">Chưa có setup đủ điều kiện.</div><div class="text-[10px] text-[#848e9c] mt-1">Config: LONG=${V39_CONFIG.LONG_ONLY} · CAT=${V39_CONFIG.REQUIRE_CATALYST} · ≥${V39_CONFIG.MIN_SCORE}</div></div>`;
+    else bdAction.innerHTML = filteredActionable.map(s => buildCard(s, true, enteredKeys.includes(s.key))).join('');
+
+    const descEl = document.getElementById('logs-description');
+    if(filteredLogs.length === 0) {
+        const emptyMsg = appState.logCat === 'PENDING' ? 'Không có signal nào đang chờ.'
+            : appState.logCat === 'TRACKED' ? 'Không có lệnh nào đang mở.'
+            : 'Không có lệnh nào đã đóng.';
+        bdTracked.innerHTML = `<div class="col-span-full text-center py-16 text-[#848e9c] text-sm border border-[#2b3139] bg-[#0b0e11] rounded-xl border-dashed">${emptyMsg}</div>`;
+    } else {
+        bdTracked.innerHTML = filteredLogs.slice(0, 50).map(s => buildCard(s, false, enteredKeys.includes(s.key))).join('');
+    }
+    if(descEl) {
+        if (appState.logCat === 'PENDING') descEl.innerHTML = `<span class="text-[#fcd535]">⏳ ${globalPending.length} signal đang chờ.</span>`;
+        else if (appState.logCat === 'TRACKED') descEl.innerHTML = `<span class="text-[#3b82f6]">🚀 Đang chạy — đóng khi SL/TP/Time.</span>`;
+        else descEl.innerHTML = `<span class="text-[#0ecb81]">✅ Đã đóng (SL/TP/Time).</span>`;
+    }
+
+    const pendingCount = globalPending.length;
+    const trackedCount = logs.filter(l => { const st = l.final?.state || l.eval?.state || 'WAITING'; return ACTIVE_STATES.includes(st); }).length;
+    const closedCount = logs.filter(l => { const st = l.final?.state || l.eval?.state || 'WAITING'; return CLOSED_STATES.includes(st); }).length;
+    document.getElementById('cnt-PENDING').innerText = pendingCount > 0 ? `(${pendingCount})` : '';
+    document.getElementById('cnt-TRACKED').innerText = trackedCount > 0 ? `(${trackedCount})` : '';
+    document.getElementById('cnt-CLOSED').innerText = closedCount > 0 ? `(${closedCount})` : '';
+    document.getElementById('bot-count-inline').innerText = pendingCount;
+
+    const st = computeDetailedStats(logs);
+    const dec = st.fullWins + st.losses;
+    const strictWinrate = dec > 0 ? ((st.fullWins / dec) * 100).toFixed(1) + '%' : '0%';
+    const expectancyR = st.count > 0 ? st.netR / st.count : 0;
+    const expectancyUSD = st.count > 0 ? st.netUSD / st.count : 0;
+
+    const badgeAct = document.getElementById('tab-badge-actionable');
+    if(filteredActionable.length > 0) { badgeAct.innerText = filteredActionable.length; badgeAct.classList.remove('hidden'); } else badgeAct.classList.add('hidden');
+    document.getElementById('stat-actionable').innerText = filteredActionable.length;
+    document.getElementById('stat-rejected').innerText = globalRejectedByHardCap > 0 ? `⛔ ${globalRejectedByHardCap} vượt cap 6R` : '';
+    document.getElementById('stat-winrate').innerText = strictWinrate;
+    document.getElementById('stat-winrate').className = `text-xl font-black font-mono ${parseFloat(strictWinrate) > 40 ? 'text-[#0ecb81]' : 'text-[#eaecef]'}`;
+    document.getElementById('stat-partial').innerText = `${st.fullWins}W / ${st.losses}L`;
+
+    document.getElementById('stat-expectancy').innerText = `${expectancyR > 0 ? '+' : ''}${expectancyR.toFixed(2)}R`;
+    document.getElementById('stat-expectancy').className = `text-xl font-black font-mono ${expectancyR > 0 ? 'text-[#fcd535]' : 'text-[#848e9c]'}`;
+    document.getElementById('stat-expectancy-usd').innerText = formatUSDT(expectancyUSD);
+    document.getElementById('stat-pnl-usd').innerText = formatUSDT(st.netUSD + st.floatingUSD);
+    document.getElementById('stat-pnl-usd').className = `text-xl font-black font-mono ${(st.netUSD+st.floatingUSD) > 0 ? 'text-[#0ecb81]' : ((st.netUSD+st.floatingUSD) < 0 ? 'text-[#f6465d]' : 'text-[#848e9c]')}`;
+    document.getElementById('stat-pnl').innerText = `${st.totalNetR > 0 ? '+' : ''}${st.totalNetR.toFixed(2)}R`;
+    document.getElementById('stat-pnl').className = `text-[11px] font-bold font-mono ${st.totalNetR > 0 ? 'text-[#0ecb81]' : (st.totalNetR < 0 ? 'text-[#f6465d]' : 'text-[#848e9c]')}`;
+    document.getElementById('stat-count').innerText = `${st.count} đóng · ${st.runningCount} mở · 1R $${get1R_USDT().toFixed(2)}`;
+
+    if(!document.getElementById('stats-modal').classList.contains('hidden')) renderStatsModal();
+}
+
+function buildCard(s, isActionable, isEntered) {
+    const isL = s.type === 'LONG';
+    const activeEval = s.final || s.eval;
+    const stKey = activeEval?.state || 'WAITING';
+    const stText = getStateLabel(stKey);
+    const stColor = getStateStyle(stKey);
+    let bgType = isL ? 'bg-[#0ecb81]/15 text-[#0ecb81]' : 'bg-[#f6465d]/15 text-[#f6465d]';
+    if (s.rankScore === undefined) { s.rankScore = calcRankScore(s); s.quality = getQualityGrade(s.rankScore); }
+    const quality = s.quality;
+    const rDisplay = getLiveRDisplay(s, activeEval || {});
+
+    if (CLOSED_STATES.includes(stKey) && !isActionable) {
+        return `
+        <div class="card-bg border border-[#2b3139] rounded-xl p-3.5 flex flex-col hover:border-[#848e9c]/50 transition-all opacity-85 hover:opacity-100 shadow-sm">
+            <div class="flex justify-between items-start mb-2.5">
+                <div class="flex flex-col gap-1.5">
+                    <div class="flex items-center gap-1.5 flex-wrap">
+                        <span class="text-base font-black text-[#eaecef]">${s.sym.replace('USDT','')}</span>
+                        <span class="px-1.5 py-0.5 rounded text-[9px] font-bold ${bgType}">${s.type}</span>
+                        <span class="px-1.5 py-0.5 rounded text-[9px] font-bold bg-[#2b3139] text-[#848e9c]">4H</span>
+                        ${quality ? `<span class="grade-badge ${quality.color}">${quality.grade}</span>` : ''}
+                    </div>
+                    <div class="text-[11px] font-medium text-[#848e9c] flex items-center gap-1.5">
+                        <span class="text-[#fcd535] font-bold">${Math.round(s.score)}đ</span><span class="opacity-50">•</span><span>${s.strat}</span>
+                        <span class="text-[#a855f7]">TP ${(s.rr||0).toFixed(1)}R</span>
+                    </div>
+                </div>
+                <div class="flex flex-col items-end gap-1.5">
+                    <span class="px-2 py-0.5 rounded text-[9px] font-bold border ${stColor}">${stText}</span>
+                    ${rDisplay.txtR ? `
+                    <div class="flex flex-col items-end leading-tight">
+                        <span class="${rDisplay.color} font-bold font-mono text-[13px]">${rDisplay.txtR}</span>
+                        <span class="${rDisplay.color} font-bold font-mono text-[11px] opacity-90">${rDisplay.txtUSD}</span>
+                    </div>` : ''}
+                </div>
+            </div>
+            <div class="flex justify-between items-center text-[10px] text-[#848e9c] font-bold pt-2 border-t border-[#2b3139]">
+                <span>Tạo: <span class="font-mono text-[#eaecef]">${formatTime(s.sigT)}</span></span>
+                ${activeEval.closeTime ? `<span>Đóng: <span class="font-mono text-[#eaecef]">${formatTime(activeEval.closeTime)}</span></span>` : ''}
+            </div>
+        </div>`;
+    }
+
+    const riskPct = (Math.abs(s.avgEntry - s.slTarget) / s.avgEntry) * 100;
+    const risk = Math.abs(s.avgEntry - s.slTarget);
+    const slPct = risk / s.avgEntry;
+    const oneR_USDT = get1R_USDT();
+    const sz = sizeByRisk(slPct);
+    const curP = s.curPrice || s.avgEntry;
+    const inZone = (isL && curP <= s.etEdge) || (!isL && curP >= s.etEdge);
+    const distInfo = getDistanceInfo(s);
+    const isHighPriority = s.score >= 105 && s.rr >= 2.0;
+    const isPending = stKey === 'WAITING' && !isActionable;
+    const gs = s.directionalSizing;
+    const isRejected = gs && gs.reject;
+    const cardRing = isRejected ? 'ring-1 ring-[#f6465d]/60'
+        : isHighPriority ? 'ring-1 ring-[#fcd535] shadow-[0_0_12px_rgba(252,213,53,0.15)]'
+        : (isEntered ? 'ring-1 ring-[#fcd535]'
+        : (isPending ? 'ring-1 ring-[#fcd535]/40' : ''));
+    const expireT = s.sigT + sysConfig.wait * sysConfig.ms;
+    const timeLeft = expireT - Date.now();
+    const countdownTxt = formatCountdown(timeLeft);
+
+    let groupBox = '';
+    if (gs && gs.directionalRUsed > 0 && !CLOSED_STATES.includes(stKey)) {
+        const siblingsTxt = gs.siblings.length > 0 && gs.siblings.length <= 8
+            ? `<div class="text-[9px] text-[#848e9c] mt-1.5 leading-snug">Cùng hướng: <span class="text-[#fcd535] font-mono">${gs.siblings.join(', ')}</span></div>` : '';
+        const usageCls = gs.directionalRUsed >= gs.directionalRMax ? 'text-[#f6465d]' : (gs.directionalRUsed >= gs.directionalRMax - 1 ? 'text-[#fcd535]' : 'text-[#848e9c]');
+        groupBox = `
+        <div class="mb-3 p-2.5 rounded-lg border border-[#2b3139] bg-[#0b0e11]">
+            <div class="flex justify-between items-center text-[10px] font-bold mb-1">
+                <span class="text-[#848e9c]">📊 EXPOSURE ${s.type}</span>
+                <span class="font-mono ${usageCls}">${gs.directionalRUsed + 1} / ${gs.directionalRMax}R</span>
+            </div>
+            <div class="flex justify-between items-center text-[10px] font-mono">
+                <span class="text-[#848e9c]">Sizing:</span>
+                <span class="text-[#eaecef] font-bold">$${gs.margin.toFixed(2)} margin · $${gs.notional.toFixed(0)} notional</span>
+            </div>
+            ${siblingsTxt}
+        </div>`;
+    }
+
+    return `
+    <div class="card-bg border rounded-xl p-4 flex flex-col hover:border-[#848e9c]/50 transition-all relative ${cardRing} ${isPending && !isRejected ? 'pending-pulse' : ''} ${isRejected ? 'opacity-75' : ''}">
+        ${isHighPriority && !isRejected ? `<div class="absolute -top-2 -right-2 z-10"><span class="bg-gradient-to-r from-[#fcd535] to-[#f59e0b] text-black font-black text-[9px] px-2 py-0.5 rounded-full shadow-lg uppercase">⭐ ƯU TIÊN CAO</span></div>` : ''}
+        ${isRejected ? `<div class="absolute -top-2 -right-2 z-10"><span class="bg-[#f6465d] text-white font-black text-[9px] px-2 py-0.5 rounded-full shadow-lg uppercase">⛔ CAP 6R</span></div>` : ''}
+        ${isPending && !isRejected ? `<div class="absolute -top-2 left-2 z-10"><span class="bg-[#fcd535] text-black font-black text-[9px] px-2 py-0.5 rounded-full shadow-lg uppercase">⏳ PENDING</span></div>` : ''}
+        <div class="flex justify-between items-start mb-3 border-b border-[#2b3139] pb-3">
+            <div class="flex flex-col gap-1.5">
+                <div class="flex items-center gap-2 flex-wrap">
+                    <span class="text-xl font-black text-[#eaecef]">${s.sym.replace('USDT','')}</span>
+                    <span class="px-1.5 py-0.5 rounded text-[10px] font-bold ${bgType}">${s.type}</span>
+                    <span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-[#2b3139] text-[#848e9c]">4H</span>
+                    ${quality ? `<span class="grade-badge ${quality.color}">${quality.grade}</span>` : ''}
+                </div>
+                <div class="text-xs font-medium text-[#848e9c] flex items-center gap-2">
+                    <span class="text-[#fcd535] font-bold">${Math.round(s.score)}đ</span><span class="opacity-50">•</span><span>${s.strat}</span>
+                </div>
+            </div>
+            <div class="flex flex-col items-end gap-1">
+                <span class="px-2 py-0.5 rounded text-[10px] font-bold border ${stColor}">${stText}</span>
+                ${rDisplay.txtR ? `<div class="flex flex-col items-end"><span class="${rDisplay.color} font-bold font-mono text-sm">${rDisplay.txtR}</span><span class="${rDisplay.color} font-bold font-mono text-xs opacity-90">${rDisplay.txtUSD}</span></div>` : ''}
+            </div>
+        </div>
+        <div class="flex flex-wrap gap-1.5 mb-3">
+            ${s.tags.map(t => `<span class="text-[9px] font-bold px-1.5 py-0.5 rounded bg-[#0b0e11] ${t.includes('🛑')||t.includes('⚠️')?'text-[#f6465d] border-[#f6465d]/50':(t.includes('Ép SL')?'text-[#fcd535]':(t.includes('Vol')||t.includes('Biên')?'text-[#0ecb81]':(t.includes('D UP')?'text-[#0ecb81]':(t.includes('D DOWN')?'text-[#f6465d]':'text-[#848e9c]'))))} border border-[#2b3139]">${t}</span>`).join('')}
+        </div>
+        ${groupBox}
+        <div class="grid grid-cols-2 gap-2 mb-3 bg-[#0b0e11] rounded-lg border border-[#2b3139] overflow-hidden">
+            <div class="flex flex-col items-center justify-center py-2.5 border-r border-b border-[#2b3139]">
+                <span class="text-[9px] text-[#848e9c] font-bold mb-1">SL (-${riskPct.toFixed(2)}%)</span>
+                <span class="font-mono text-xs font-bold text-[#f6465d]">${formatPrice(s.slTarget)}</span>
+            </div>
+            <div class="flex flex-col items-center justify-center py-2.5 border-b border-[#2b3139] bg-[#2b3139]/20">
+                <span class="text-[9px] text-[#848e9c] font-bold mb-1">ENTRY</span>
+                <span class="font-mono text-xs font-bold text-[#eaecef]">${formatPrice(s.avgEntry)}</span>
+            </div>
+            <div class="col-span-2 flex flex-col items-center justify-center py-2.5 bg-[#0ecb81]/5">
+                <span class="text-[9px] text-[#0ecb81] font-bold mb-1">TP (${(s.rr||0).toFixed(1)}R)</span>
+                <span class="font-mono text-sm font-bold text-[#0ecb81]">${formatPrice(s.tpTarget)}</span>
+            </div>
+        </div>
+        <div class="grid grid-cols-3 gap-1.5 mb-3 text-[10px]">
+            <div class="bg-[#0b0e11] border border-[#2b3139] rounded px-2 py-1.5 text-center">
+                <div class="text-[8px] text-[#848e9c] font-bold uppercase">1R</div>
+                <div class="text-[#f6465d] font-bold font-mono">-$${oneR_USDT.toFixed(2)}</div>
+            </div>
+            <div class="bg-[#0b0e11] border border-[#2b3139] rounded px-2 py-1.5 text-center">
+                <div class="text-[8px] text-[#848e9c] font-bold uppercase">TP $</div>
+                <div class="text-[#0ecb81] font-bold font-mono">+$${(oneR_USDT * s.rr).toFixed(2)}</div>
+            </div>
+            <div class="bg-[#0b0e11] border border-[#2b3139] rounded px-2 py-1.5 text-center">
+                <div class="text-[8px] text-[#848e9c] font-bold uppercase">Margin</div>
+                <div class="text-[#fcd535] font-bold font-mono">$${sz.margin.toFixed(2)}</div>
+            </div>
+        </div>
+        ${isActionable ? `
+        <div class="flex flex-col gap-1 text-[10px] text-[#848e9c] font-bold mb-3 px-1">
+            <div class="flex justify-between items-center">
+                <span>Tạo: <span class="font-mono text-[#eaecef]">${formatTime(s.sigT)}</span></span>
+                <span>Live: <span class="font-mono ${inZone ? 'text-[#0ecb81] animate-pulse' : 'text-[#fcd535]'}">${formatPrice(curP)}</span></span>
+            </div>
+            <div class="flex justify-between items-center">
+                <span>Cách entry:</span>
+                <span class="font-mono ${distInfo.color}">${distInfo.label}</span>
+            </div>
+        </div>` : isPending ? `
+        <div class="flex flex-col gap-1 text-[10px] text-[#848e9c] font-bold mb-3 px-1 bg-[#fcd535]/10 border border-[#fcd535]/20 rounded p-2">
+            <div class="flex justify-between items-center"><span>Live:</span><span class="font-mono text-[#fcd535]">${formatPrice(curP)}</span></div>
+            <div class="flex justify-between items-center"><span>Cách entry:</span><span class="font-mono ${distInfo.color}">${distInfo.label}</span></div>
+            <div class="flex justify-between items-center"><span>⏱ Hết chờ sau:</span><span class="font-mono text-[#fcd535]">${countdownTxt}</span></div>
+        </div>` : `
+        <div class="flex justify-between items-center text-[10px] text-[#848e9c] font-bold mb-3 px-1">
+            <span>Tạo: <span class="font-mono text-[#eaecef]">${formatTime(s.sigT)}</span></span>${activeEval.closeTime ? `<span>Đóng: <span class="font-mono text-[#eaecef]">${formatTime(activeEval.closeTime)}</span></span>` : `<span>Khớp: <span class="font-mono text-[#eaecef]">${activeEval.fillTime ? formatTime(activeEval.fillTime) : '--:--'}</span></span>`}
+        </div>`}
+        <div class="flex gap-2 mt-auto">
+            ${isRejected 
+                ? `<button onclick="forceEnterRejected('${s.key}')" class="flex-1 py-2.5 rounded-lg text-[11px] font-black uppercase bg-[#f6465d]/10 text-[#f6465d] border border-[#f6465d]/40 hover:bg-[#f6465d]/20 transition-all">⛔ CAP 6R — VẪN VÀO</button>`
+                : `<button onclick="toggleEnteredOrder('${s.key}')" class="flex-1 py-2.5 rounded-lg text-[11px] font-black uppercase transition-all ${isEntered ? 'bg-[#fcd535] text-black shadow-[0_0_15px_rgba(252,213,53,0.3)]' : 'bg-[#2b3139] text-[#848e9c] hover:bg-[#2b3139]/80 hover:text-white'}">${isEntered ? '✓ Đã Thêm' : 'Đánh Dấu Đã Vào'}</button>`
+            }
+            <button onclick="copyToClipboard('${s.type} ${s.sym.replace('USDT','')} | E: ${formatPrice(s.avgEntry)} | SL: ${formatPrice(s.slTarget)} | TP: ${formatPrice(s.tpTarget)}')" class="px-3.5 py-2.5 rounded-lg bg-[#2b3139] text-[#848e9c] hover:text-[#eaecef] transition-colors flex items-center justify-center">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
+            </button>
+        </div>
+    </div>`;
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    ['cfg-capital', 'cfg-risk', 'cfg-leverage'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.addEventListener('input', updateMoneyPreview);
+    });
+    const slider = document.getElementById('cfg-risk-slider');
+    if (slider) {
+        slider.addEventListener('input', () => {
+            document.getElementById('cfg-risk').value = slider.value;
+            updateMoneyPreview();
+        });
+    }
+
+    updateFilterBadge();
+    initDB().then(() => {
+        updateMoneyDisplays(); switchMainTab(currentMainTab); updateUIChips(); forceFetchData();
+    }).catch(e => {
+        updateMoneyDisplays(); switchMainTab(currentMainTab); updateUIChips(); forceFetchData();
+    });
+});
+
+setInterval(() => {
+    if (!document.getElementById('scan-status').innerText.includes('Đang')) {
+        forceFetchData();
+    }
+}, 60000);
+</script>
+</body>
+</html>
