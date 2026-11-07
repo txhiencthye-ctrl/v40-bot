@@ -12297,11 +12297,183 @@
         "closeTime": 1793318400000
       },
       "state": "SL"
+    },
+    "v40_ZECUSDT_1793995200000": {
+      "type": "LONG",
+      "entryType": "LIMIT",
+      "sigT": 1793995200000,
+      "avgEntry": 1238.1847699999998,
+      "slTarget": 1079.8003009025085,
+      "tpTarget": 1713.3381772924738,
+      "rr": 3,
+      "sym": "ZECUSDT",
+      "zone": "LOWER",
+      "eval": {
+        "state": "EXPIRED",
+        "netR": 0,
+        "fillTime": null
+      },
+      "state": "EXPIRED"
+    },
+    "v40_ZECUSDT_1794009600000": {
+      "type": "LONG",
+      "entryType": "LIMIT",
+      "sigT": 1794009600000,
+      "avgEntry": 1238.1847699999998,
+      "slTarget": 1080.3109936951864,
+      "tpTarget": 1711.80609891444,
+      "rr": 3,
+      "sym": "ZECUSDT",
+      "zone": "LOWER",
+      "eval": {
+        "state": "EXPIRED",
+        "netR": 0,
+        "fillTime": null
+      },
+      "state": "EXPIRED"
+    },
+    "v40_XAUUSDT_1793995200000": {
+      "type": "LONG",
+      "entryType": "LIMIT",
+      "sigT": 1793995200000,
+      "avgEntry": 4004.6766099999995,
+      "slTarget": 3861.9043037863325,
+      "tpTarget": 4432.993528641,
+      "rr": 3,
+      "sym": "XAUUSDT",
+      "zone": "LOWER",
+      "eval": {
+        "state": "EXPIRED",
+        "netR": 0,
+        "fillTime": null
+      },
+      "state": "EXPIRED"
+    },
+    "v40_XAUUSDT_1794009600000": {
+      "type": "LONG",
+      "entryType": "LIMIT",
+      "sigT": 1794009600000,
+      "avgEntry": 4004.6766099999995,
+      "slTarget": 3863.563282087309,
+      "tpTarget": 4428.016593738072,
+      "rr": 3,
+      "sym": "XAUUSDT",
+      "zone": "LOWER",
+      "eval": {
+        "state": "EXPIRED",
+        "netR": 0,
+        "fillTime": null
+      },
+      "state": "EXPIRED"
+    },
+    "v40_SOXSUSDT_1793995200000": {
+      "type": "LONG",
+      "entryType": "LIMIT",
+      "sigT": 1793995200000,
+      "avgEntry": 64.89911000000001,
+      "slTarget": 44.26397785377899,
+      "tpTarget": 126.80450643866305,
+      "rr": 3,
+      "sym": "SOXSUSDT",
+      "zone": "LOWER",
+      "eval": {
+        "state": "EXPIRED",
+        "netR": 0,
+        "fillTime": null
+      },
+      "state": "EXPIRED"
+    },
+    "v40_SOXSUSDT_1794009600000": {
+      "type": "LONG",
+      "entryType": "LIMIT",
+      "sigT": 1794009600000,
+      "avgEntry": 64.89911000000001,
+      "slTarget": 44.402622292794774,
+      "tpTarget": 126.3885731216157,
+      "rr": 3,
+      "sym": "SOXSUSDT",
+      "zone": "LOWER",
+      "eval": {
+        "state": "EXPIRED",
+        "netR": 0,
+        "fillTime": null
+      },
+      "state": "EXPIRED"
+    },
+    "v40_XAGUSDT_1793995200000": {
+      "type": "LONG",
+      "entryType": "LIMIT",
+      "sigT": 1793995200000,
+      "avgEntry": 50.860029999999995,
+      "slTarget": 48.13337961285371,
+      "tpTarget": 59.03998116143885,
+      "rr": 3,
+      "sym": "XAGUSDT",
+      "zone": "LOWER",
+      "eval": {
+        "state": "EXPIRED",
+        "netR": 0,
+        "fillTime": null
+      },
+      "state": "EXPIRED"
+    },
+    "v40_XAGUSDT_1794009600000": {
+      "type": "LONG",
+      "entryType": "LIMIT",
+      "sigT": 1794009600000,
+      "avgEntry": 50.860029999999995,
+      "slTarget": 48.17170964050702,
+      "tpTarget": 58.924991078478925,
+      "rr": 3,
+      "sym": "XAGUSDT",
+      "zone": "LOWER",
+      "eval": {
+        "state": "EXPIRED",
+        "netR": 0,
+        "fillTime": null
+      },
+      "state": "EXPIRED"
+    },
+    "v40_CYBERUSDT_1793995200000": {
+      "type": "LONG",
+      "entryType": "LIMIT",
+      "sigT": 1793995200000,
+      "avgEntry": 0.30930610000000003,
+      "slTarget": 0.20684897147526776,
+      "tpTarget": 0.6166774855741968,
+      "rr": 3,
+      "sym": "CYBERUSDT",
+      "zone": "LOWER",
+      "eval": {
+        "state": "RUNNING",
+        "netR": 0,
+        "grossR": 0,
+        "fillTime": 1794009600000,
+        "closeTime": null
+      },
+      "state": "RUNNING"
+    },
+    "v40_CYBERUSDT_1794009600000": {
+      "type": "LONG",
+      "entryType": "LIMIT",
+      "sigT": 1794009600000,
+      "avgEntry": 0.30930610000000003,
+      "slTarget": 0.20692047351274864,
+      "tpTarget": 0.6164629794617542,
+      "rr": 3,
+      "sym": "CYBERUSDT",
+      "zone": "LOWER",
+      "eval": {
+        "state": "EXPIRED",
+        "netR": 0,
+        "fillTime": null
+      },
+      "state": "EXPIRED"
     }
   },
   "btcRegime": {
-    "price": 75927,
-    "ret30": -8.209044540863886,
+    "price": 76011.2,
+    "ret30": -7.825325625755641,
     "routerMode": "OFF"
   },
   "universe": [
@@ -12309,31 +12481,31 @@
     "ETHUSDT",
     "SOXLUSDT",
     "SNDKUSDT",
-    "XAUUSDT",
     "ZECUSDT",
-    "SKHYNIXUSDT",
-    "SOXSUSDT",
-    "KORUUSDT",
+    "XAUUSDT",
     "MUUSDT",
+    "SOXSUSDT",
     "SOLUSDT",
     "CLUSDT",
-    "SKHYUSDT",
+    "SKHYNIXUSDT",
     "SPCXUSDT",
-    "BZUSDT",
-    "XAGUSDT",
     "XRPUSDT",
+    "KORUUSDT",
     "AKEUSDT",
+    "BZUSDT",
+    "SKHYUSDT",
     "SNXXUSDT",
-    "QQQUSDT",
+    "XAGUSDT",
     "HYPEUSDT",
+    "QQQUSDT",
     "NVDAUSDT",
     "UAIUSDT",
-    "INTCUSDT",
     "1000PEPEUSDT",
-    "EWYUSDT",
+    "INTCUSDT",
+    "ONEUSDT",
     "NEARUSDT",
     "CYBERUSDT",
     "MSTRUSDT",
-    "TQQQUSDT"
+    "BNBUSDT"
   ]
 }
