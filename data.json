@@ -15382,11 +15382,234 @@
         "closeTime": 1793894400000
       },
       "state": "SL"
+    },
+    "v40_SOXLUSDT_1794542400000": {
+      "type": "LONG",
+      "entryType": "LIMIT",
+      "sigT": 1794542400000,
+      "avgEntry": 53.88645000000001,
+      "slTarget": 38.098377289334216,
+      "tpTarget": 101.2506681319974,
+      "rr": 3,
+      "sym": "SOXLUSDT",
+      "zone": "LOWER",
+      "eval": {
+        "state": "EXPIRED",
+        "netR": 0,
+        "fillTime": null
+      },
+      "state": "EXPIRED"
+    },
+    "v40_SOXLUSDT_1794556800000": {
+      "type": "LONG",
+      "entryType": "LIMIT",
+      "sigT": 1794556800000,
+      "avgEntry": 53.88645000000001,
+      "slTarget": 38.17349319723891,
+      "tpTarget": 101.0253204082833,
+      "rr": 3,
+      "sym": "SOXLUSDT",
+      "zone": "LOWER",
+      "eval": {
+        "state": "EXPIRED",
+        "netR": 0,
+        "fillTime": null
+      },
+      "state": "EXPIRED"
+    },
+    "v40_SNDKUSDT_1794556800000": {
+      "type": "LONG",
+      "entryType": "LIMIT",
+      "sigT": 1794556800000,
+      "avgEntry": 888.7121199999999,
+      "slTarget": 764.4278907869472,
+      "tpTarget": 1261.564807639158,
+      "rr": 3,
+      "sym": "SNDKUSDT",
+      "zone": "LOWER",
+      "eval": {
+        "state": "EXPIRED",
+        "netR": 0,
+        "fillTime": null
+      },
+      "state": "EXPIRED"
+    },
+    "v40_SPCXUSDT_1794542400000": {
+      "type": "LONG",
+      "entryType": "LIMIT",
+      "sigT": 1794542400000,
+      "avgEntry": 140.12232999999998,
+      "slTarget": 130.90123209088662,
+      "tpTarget": 167.78562372734004,
+      "rr": 3,
+      "sym": "SPCXUSDT",
+      "zone": "LOWER",
+      "eval": {
+        "state": "RUNNING",
+        "netR": 0,
+        "grossR": 0,
+        "fillTime": 1794556800000,
+        "closeTime": null
+      },
+      "state": "RUNNING"
+    },
+    "v40_SPCXUSDT_1794556800000": {
+      "type": "LONG",
+      "entryType": "LIMIT",
+      "sigT": 1794556800000,
+      "avgEntry": 140.12232999999998,
+      "slTarget": 131.0120369415376,
+      "tpTarget": 167.45320917538714,
+      "rr": 3,
+      "sym": "SPCXUSDT",
+      "zone": "LOWER",
+      "eval": {
+        "state": "EXPIRED",
+        "netR": 0,
+        "fillTime": null
+      },
+      "state": "EXPIRED"
+    },
+    "v40_MUUSDT_1794542400000": {
+      "type": "LONG",
+      "entryType": "LIMIT",
+      "sigT": 1794542400000,
+      "avgEntry": 735.84917,
+      "slTarget": 644.4708274646935,
+      "tpTarget": 1009.9841976059195,
+      "rr": 3,
+      "sym": "MUUSDT",
+      "zone": "LOWER",
+      "eval": {
+        "state": "EXPIRED",
+        "netR": 0,
+        "fillTime": null
+      },
+      "state": "EXPIRED"
+    },
+    "v40_MUUSDT_1794556800000": {
+      "type": "LONG",
+      "entryType": "LIMIT",
+      "sigT": 1794556800000,
+      "avgEntry": 735.84917,
+      "slTarget": 644.8539826457868,
+      "tpTarget": 1008.8347320626394,
+      "rr": 3,
+      "sym": "MUUSDT",
+      "zone": "LOWER",
+      "eval": {
+        "state": "EXPIRED",
+        "netR": 0,
+        "fillTime": null
+      },
+      "state": "EXPIRED"
+    },
+    "v40_AMDUSDT_1794542400000": {
+      "type": "LONG",
+      "entryType": "LIMIT",
+      "sigT": 1794542400000,
+      "avgEntry": 510.22565999999995,
+      "slTarget": 430.4108426026984,
+      "tpTarget": 749.6701121919046,
+      "rr": 3,
+      "sym": "AMDUSDT",
+      "zone": "LOWER",
+      "eval": {
+        "state": "EXPIRED",
+        "netR": 0,
+        "fillTime": null
+      },
+      "state": "EXPIRED"
+    },
+    "v40_AMDUSDT_1794556800000": {
+      "type": "LONG",
+      "entryType": "LIMIT",
+      "sigT": 1794556800000,
+      "avgEntry": 510.22565999999995,
+      "slTarget": 430.7006038453628,
+      "tpTarget": 748.8008284639113,
+      "rr": 3,
+      "sym": "AMDUSDT",
+      "zone": "LOWER",
+      "eval": {
+        "state": "EXPIRED",
+        "netR": 0,
+        "fillTime": null
+      },
+      "state": "EXPIRED"
+    },
+    "v40_QQQUSDT_1794542400000": {
+      "type": "LONG",
+      "entryType": "LIMIT",
+      "sigT": 1794542400000,
+      "avgEntry": 670.2370599999999,
+      "slTarget": 644.7735344238865,
+      "tpTarget": 746.6276367283401,
+      "rr": 3,
+      "sym": "QQQUSDT",
+      "zone": "LOWER",
+      "eval": {
+        "state": "EXPIRED",
+        "netR": 0,
+        "fillTime": null
+      },
+      "state": "EXPIRED"
+    },
+    "v40_QQQUSDT_1794556800000": {
+      "type": "LONG",
+      "entryType": "LIMIT",
+      "sigT": 1794556800000,
+      "avgEntry": 670.2370599999999,
+      "slTarget": 644.8600676793233,
+      "tpTarget": 746.3680369620299,
+      "rr": 3,
+      "sym": "QQQUSDT",
+      "zone": "LOWER",
+      "eval": {
+        "state": "EXPIRED",
+        "netR": 0,
+        "fillTime": null
+      },
+      "state": "EXPIRED"
+    },
+    "v40_GOOGLUSDT_1794542400000": {
+      "type": "LONG",
+      "entryType": "LIMIT",
+      "sigT": 1794542400000,
+      "avgEntry": 293.03918,
+      "slTarget": 282.30849711448565,
+      "tpTarget": 325.231228656543,
+      "rr": 3,
+      "sym": "GOOGLUSDT",
+      "zone": "LOWER",
+      "eval": {
+        "state": "EXPIRED",
+        "netR": 0,
+        "fillTime": null
+      },
+      "state": "EXPIRED"
+    },
+    "v40_GOOGLUSDT_1794556800000": {
+      "type": "LONG",
+      "entryType": "LIMIT",
+      "sigT": 1794556800000,
+      "avgEntry": 293.03918,
+      "slTarget": 282.33289017773666,
+      "tpTarget": 325.15804946679,
+      "rr": 3,
+      "sym": "GOOGLUSDT",
+      "zone": "LOWER",
+      "eval": {
+        "state": "EXPIRED",
+        "netR": 0,
+        "fillTime": null
+      },
+      "state": "EXPIRED"
     }
   },
   "btcRegime": {
-    "price": 68799,
-    "ret30": -17.531124062322444,
+    "price": 69243.9,
+    "ret30": -15.339923340730287,
     "routerMode": "OFF"
   },
   "universe": [
@@ -15400,25 +15623,25 @@
     "SOLUSDT",
     "SPCXUSDT",
     "SKHYNIXUSDT",
+    "XRPUSDT",
     "SOXSUSDT",
     "MUUSDT",
-    "XRPUSDT",
-    "KORUUSDT",
     "CLUSDT",
-    "XAGUSDT",
+    "KORUUSDT",
     "HYPEUSDT",
-    "SNXXUSDT",
+    "XAGUSDT",
     "BZUSDT",
+    "SNXXUSDT",
     "BNBUSDT",
-    "NBISUSDT",
+    "BARDUSDT",
     "SKHYUSDT",
     "AMDUSDT",
     "1000PEPEUSDT",
     "DOGEUSDT",
-    "QQQUSDT",
-    "AGTUSDT",
     "NEARUSDT",
-    "GOOGLUSDT",
-    "BARDUSDT"
+    "AKEUSDT",
+    "QQQUSDT",
+    "NBISUSDT",
+    "GOOGLUSDT"
   ]
 }
